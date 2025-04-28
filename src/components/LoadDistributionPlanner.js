@@ -29,8 +29,7 @@ function LoadDistributionPlanner({ config }) {
     (Math.sqrt(3) * subfeedVoltage * subfeedBreakerAmps * powerFactor) / 1000;
   const pduMainBreakerAmps = config.pduMainBreakerTrip || 996;
   const pduVoltage = config.pduMainVoltage || 480;
-  const pduMaxKW =
-    (Math.sqrt(3) * pduVoltage * pduMainBreakerAmps * powerFactor * 0.8) / 1000;
+  const pduMaxKW = 750;
 
   const formatPower = (valueKW) => {
     return valueKW >= 1000 ? `${(valueKW / 1000).toFixed(2)} MW` : `${valueKW.toFixed(2)} kW`;
