@@ -1,25 +1,18 @@
-// === Step 2: API route to list all saved config names ===
-// File: /pages/api/list-configs.js
+// pages/api/list-configs.js
 
-import { Pool } from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-});
+import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ message: "Method not allowed" });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
   try {
-    const result = await pool.query(
-      "SELECT DISTINCT name FROM configs ORDER BY name ASC"
-    );
+    const result = await sql`SELECT name FROM configurations ORDER BY created_at DESC`;
     const names = result.rows.map(row => row.name);
-    return res.status(200).json(names);
+    res.status(200).json(names);
   } catch (error) {
-    console.error("List error:", error);
-    return res.status(500).json({ error: "Failed to list configs" });
+    console.error('Failed to list configurations:', error);
+    res.status(400).json({ message: 'Failed to list configurations', error: error.message });
   }
 }
