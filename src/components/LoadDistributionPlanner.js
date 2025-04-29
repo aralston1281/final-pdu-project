@@ -1,6 +1,8 @@
+// src/components/LoadDistributionPlanner.js (Final - Derated Capacity Respects PDU Usage)
 
 import React, { useState, useEffect } from 'react';
 import { parseConfig } from '@/utils/parseConfig';
+import { calculateMaxSubfeedKW, autoDistributeLoad } from '@/utils/loadMath';
 import LineupSection from '@/components/LineupSection';
 import PlannerHeader from '@/components/PlannerHeader';
 
@@ -22,18 +24,25 @@ function LoadDistributionPlanner({ config }) {
   const [unassignedKW, setUnassignedKW] = useState(0);
 
   const subfeedsPerPDU = 8;
-  const subfeedBreakerAmps = config.subfeedBreakerTrip || 600;
   const subfeedVoltage = config.subfeedVoltage || 415;
-  const powerFactor = 1.0;
-  const maxSubfeedKW =
-    (Math.sqrt(3) * subfeedVoltage * subfeedBreakerAmps * powerFactor) / 1000;
-  const pduMainBreakerAmps = config.pduMainBreakerTrip || 996;
-  const pduVoltage = config.pduMainVoltage || 480;
-  const pduMaxKW = 750;
 
-  const formatPower = (valueKW) => {
-    return valueKW >= 1000 ? `${(valueKW / 1000).toFixed(2)} MW` : `${valueKW.toFixed(2)} kW`;
-  };
+  const lineupMaxKW = config.lineupMaxKW || 1500;
+  const numberOfPDUsPerLineup = config.pduConfigs?.[0]?.length || 2;
+  const pduMaxKW = lineupMaxKW / numberOfPDUsPerLineup;
+
+  const powerFactor = 1.0;
+  const subfeedBreakerAmps = 600;
+  const maxSubfeedKW = calculateMaxSubfeedKW(subfeedVoltage, subfeedBreakerAmps, false, powerFactor);
+
+  const activeLineupCapacityKW = selectedLineups.reduce((total, lineup) => {
+    const activePDUs = pduUsage[lineup]?.length || 0;
+    const lineupCapacity = (lineupMaxKW * (activePDUs / numberOfPDUsPerLineup));
+    return total + lineupCapacity;
+  }, 0);
+
+  const totalDeratedCapacityMW = (activeLineupCapacityKW * 0.8) / 1000;
+
+  const formatPower = (valueKW) => (valueKW >= 1000 ? `${(valueKW / 1000).toFixed(2)} MW` : `${valueKW.toFixed(2)} kW`);
 
   const getDefaultBreakerSelection = () => {
     const defaults = {};
@@ -48,6 +57,19 @@ function LoadDistributionPlanner({ config }) {
     return defaults;
   };
 
+  const resetAll = () => {
+    setCustomDistribution([]);
+    setBreakerSelection(getDefaultBreakerSelection());
+    setPduUsage(() => {
+      const usage = {};
+      initialLineups.forEach((lineup, idx) => {
+        usage[lineup] = (config.pduConfigs[idx] || []).map((_, i) => i);
+      });
+      return usage;
+    });
+    setUnassignedKW(0);
+  };
+
   useEffect(() => {
     setBreakerSelection(getDefaultBreakerSelection());
   }, [selectedLineups, pduUsage]);
@@ -58,9 +80,7 @@ function LoadDistributionPlanner({ config }) {
   );
   const evenLoadPerPDU = totalPDUs > 0 ? (targetLoadMW * 1000) / totalPDUs : 0;
   const totalAvailableCapacityMW = ((totalPDUs * pduMaxKW) / 1000).toFixed(2);
-  const totalCustomKW = parseFloat(
-    customDistribution.reduce((acc, val) => acc + (val || 0), 0).toFixed(2)
-  );
+  const totalCustomAssignedMW = (customDistribution.reduce((acc, val) => acc + (val || 0), 0) / 1000).toFixed(2);
 
   const handleCustomChange = (index, value) => {
     const updated = [...customDistribution];
@@ -95,159 +115,107 @@ function LoadDistributionPlanner({ config }) {
   };
 
   const autoDistribute = () => {
-    const pduList = selectedLineups.flatMap((lineup) =>
-      (pduUsage[lineup] || []).map((pduIndex) => `PDU-${lineup}-${pduIndex + 1}`)
-    );
-
-    const distributed = Array(pduList.length).fill(0);
-    let remainingLoad = targetLoadMW * 1000;
-    const lineupUsedKW = {};
-    const pduCapacities = pduList.map((pduKey) => {
-      const activeFeeds = Array.from({ length: subfeedsPerPDU })
-        .map((_, i) => `${pduKey}-S${i}`)
-        .filter((k) => breakerSelection[k]);
-      const feedCount = activeFeeds.length;
-      const cap = feedCount > 0 ? feedCount * maxSubfeedKW : pduMaxKW;
-      const lineup = pduKey.split('-')[1];
-      if (!lineupUsedKW[lineup]) lineupUsedKW[lineup] = 0;
-      return cap;
+    const { distributed, unassignedKW, lineupWarnings } = autoDistributeLoad({
+      selectedLineups,
+      pduUsage,
+      breakerSelection,
+      subfeedsPerPDU,
+      maxSubfeedKW,
+      pduMaxKW,
+      targetLoadMW,
+      lineupMaxKW,
     });
 
-    const maxPerLineup = pduMaxKW * 2;
-    while (remainingLoad > 0) {
-      let anyAllocated = false;
-      for (let i = 0; i < distributed.length; i++) {
-        const pduKey = pduList[i];
-        const cap = pduCapacities[i];
-        const lineup = pduKey.split('-')[1];
-        const current = distributed[i];
-        const totalLineupLoad = lineupUsedKW[lineup] || 0;
-        if (current >= cap || totalLineupLoad >= maxPerLineup) continue;
-        const available = Math.min(cap - current, maxPerLineup - totalLineupLoad, 10);
-        distributed[i] += available;
-        lineupUsedKW[lineup] = totalLineupLoad + available;
-        remainingLoad -= available;
-        anyAllocated = true;
-        if (remainingLoad <= 0) break;
-      }
-      if (!anyAllocated) break;
-    }
-
-    setUnassignedKW(remainingLoad);
     setCustomDistribution(distributed.map((val) => parseFloat(val.toFixed(2))));
-    const warnings = {};
-    Object.keys(lineupUsedKW).forEach((lineup) => {
-      if (lineupUsedKW[lineup] >= maxPerLineup) warnings[lineup] = true;
-    });
-    setLineupWarnings(warnings);
+    setUnassignedKW(unassignedKW);
+    setLineupWarnings(lineupWarnings);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-  <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow">
-      <h1>{config.jobName} — Load Distribution Planner</h1>
-      <PlannerHeader
-        targetLoadMW={targetLoadMW}
-        setTargetLoadMW={setTargetLoadMW}
-        className="bg-white text-black border border-gray-300 rounded px-3 py-2 w-full mb-4"
-        autoDistribute={autoDistribute}
-        resetAll={() => {
-          setCustomDistribution([]);
-          setBreakerSelection(getDefaultBreakerSelection());
-          setPduUsage(() => {
-            const usage = {};
-            initialLineups.forEach((lineup, idx) => {
-              usage[lineup] = (config.pduConfigs[idx] || []).map((_, i) => i);
-            });
-            return usage;
-          });
-          setUnassignedKW(0);
-        }}
-        totalPDUs={totalPDUs}
-        evenLoadPerPDU={evenLoadPerPDU}
-        pduMaxKW={pduMaxKW}
-        totalAvailableCapacityMW={totalAvailableCapacityMW}
-        totalCustomKW={totalCustomKW}
-      />
+      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow">
+        <h1 className="text-xl font-bold mb-6">{config.jobName} — Load Distribution Planner</h1>
 
-      <div style={{ marginTop: '2rem' }}>
-        <h3>Lineups & PDUs in Use</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {initialLineups.map((lineup) => {
-            const lineupIdx = initialLineups.indexOf(lineup);
-            const pduArray = config?.pduConfigs?.[lineupIdx] || [];
-
-            return (
-              <div key={lineup} style={{ display: 'flex', alignItems: 'center' }}>
-                <button
-                  onClick={() => toggleLineup(lineup)}
-                  style={{
-                    padding: '0.4rem',
-                    marginRight: '1rem',
-                    borderRadius: '6px',
-                    border: '1px solid #ccc',
-                    backgroundColor: selectedLineups.includes(lineup) ? '#007bff' : '#e32636',
-                    color: selectedLineups.includes(lineup) ? 'white' : 'black',
-                  }}
-                >
-                  {lineup}
-                </button>
-
-                {selectedLineups.includes(lineup) && (
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {pduArray.map((_, idx) => {
-                      const active = pduUsage[lineup]?.includes(idx);
-                      return (
-                        <button
-                          key={idx}
-                          onClick={() => togglePdu(lineup, idx)}
-                          style={{
-                            padding: '0.3rem 0.6rem',
-                            borderRadius: '4px',
-                            border: '1px solid #ccc',
-                            backgroundColor: active ? '#28a745' : '#e32636',
-                            color: active ? 'white' : 'black',
-                          }}
-                        >
-                          PDU-{lineup}-{idx + 1}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {unassignedKW > 0 && (
-        <div style={{ color: 'red', fontWeight: 'bold', marginTop: '1rem' }}>
-          ⚠️ {formatPower(unassignedKW)} could not be assigned due to system limits.
-        </div>
-      )}
-
-      {selectedLineups.map((lineup, li) => (
-        <LineupSection
-          key={lineup}
-          lineup={lineup}
-          pduList={pduUsage[lineup] || []}
-          lineupIndex={li}
-          pduUsage={pduUsage}
-          selectedLineups={selectedLineups}
-          customDistribution={customDistribution}
+        <PlannerHeader
+          targetLoadMW={targetLoadMW}
+          setTargetLoadMW={setTargetLoadMW}
+          autoDistribute={autoDistribute}
+          resetAll={resetAll}
+          totalPDUs={totalPDUs}
+          evenLoadPerPDU={evenLoadPerPDU}
           pduMaxKW={pduMaxKW}
-          breakerSelection={breakerSelection}
-          toggleSubfeed={handleSubfeedToggle}
-          handleCustomChange={handleCustomChange}
-          subfeedsPerPDU={subfeedsPerPDU}
-          maxSubfeedKW={maxSubfeedKW}
-          lineupWarnings={lineupWarnings}
-          formatPower={formatPower}
+          totalAvailableCapacityMW={totalAvailableCapacityMW}
+          totalCustomKW={totalCustomAssignedMW}
+          totalDeratedCapacityMW={totalDeratedCapacityMW}
         />
-      ))}
+
+        {/* Lineups and PDUs Display */}
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-2">Lineups & PDUs in Use</h3>
+          <div className="flex flex-col gap-4">
+            {initialLineups.map((lineup) => {
+              const lineupIdx = initialLineups.indexOf(lineup);
+              const pduArray = config?.pduConfigs?.[lineupIdx] || [];
+
+              return (
+                <div key={lineup} className="flex items-center gap-4">
+                  <button
+                    onClick={() => toggleLineup(lineup)}
+                    className={`px-3 py-2 rounded border ${selectedLineups.includes(lineup) ? 'bg-blue-600 text-white' : 'bg-red-500 text-white'}`}
+                  >
+                    {lineup}
+                  </button>
+
+                  {selectedLineups.includes(lineup) && (
+                    <div className="flex gap-2 flex-wrap">
+                      {pduArray.map((_, idx) => {
+                        const active = pduUsage[lineup]?.includes(idx);
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => togglePdu(lineup, idx)}
+                            className={`px-2 py-1 rounded border ${active ? 'bg-green-600 text-white' : 'bg-red-500 text-white'}`}
+                          >
+                            PDU-{lineup}-{idx + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Load Distribution Section */}
+        {unassignedKW > 0 && (
+          <div className="text-red-600 font-bold mt-6">
+            ⚠️ {formatPower(unassignedKW)} could not be assigned due to system limits.
+          </div>
+        )}
+
+        {selectedLineups.map((lineup, li) => (
+          <LineupSection
+            key={lineup}
+            lineup={lineup}
+            pduList={pduUsage[lineup] || []}
+            lineupIndex={li}
+            pduUsage={pduUsage}
+            selectedLineups={selectedLineups}
+            customDistribution={customDistribution}
+            pduMaxKW={pduMaxKW}
+            breakerSelection={breakerSelection}
+            toggleSubfeed={handleSubfeedToggle}
+            handleCustomChange={handleCustomChange}
+            subfeedsPerPDU={subfeedsPerPDU}
+            maxSubfeedKW={maxSubfeedKW}
+            lineupWarnings={lineupWarnings}
+            formatPower={formatPower}
+          />
+        ))}
       </div>
-</div>
+    </div>
   );
 }
 
