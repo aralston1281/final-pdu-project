@@ -1,35 +1,26 @@
-// === Step 1: API route to load config ===
-// File: /pages/api/load-config.js
-
-import { Pool } from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-});
+import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ message: "Method not allowed" });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
   const { name } = req.query;
+
   if (!name) {
-    return res.status(400).json({ message: "Missing config name" });
+    return res.status(400).json({ message: 'Missing name' });
   }
 
   try {
-    const result = await pool.query(
-      "SELECT data FROM configs WHERE name = $1 ORDER BY created_at DESC LIMIT 1",
-      [name]
-    );
+    const result = await sql`SELECT config FROM configurations WHERE name = ${name} LIMIT 1`;
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Config not found" });
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Config not found' });
     }
 
-    return res.status(200).json(result.rows[0].data);
+    res.status(200).json(result.rows[0].config); // 🔥 send ONLY the config part
   } catch (error) {
-    console.error("Load error:", error);
-    return res.status(500).json({ error: "Failed to load config" });
+    console.error('Failed to load configuration:', error);
+    res.status(400).json({ message: 'Failed to load configuration', error: error.message });
   }
 }
