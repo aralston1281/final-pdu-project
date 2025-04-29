@@ -1,76 +1,42 @@
+// src/components/JobConfigPage.js (New Simpler Version — LineupMaxKW driven)
+
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
-async function saveToDatabase(name, config) {
-  try {
-    const res = await fetch("/api/save-config", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, data: config }),
-    });
+function JobConfigPage() {
+  const router = useRouter();
 
-    const result = await res.json();
-    console.log("Saved!", result);
-    alert("Configuration saved!");
-  } catch (err) {
-    console.error("Save failed:", err);
-    alert("Failed to save config.");
-  }
-}
-
-async function loadConfigByName(name) {
-  try {
-    const res = await fetch(`/api/load-config?name=${encodeURIComponent(name)}`);
-    if (!res.ok) throw new Error("Not found");
-    const config = await res.json();
-    return config;
-  } catch (err) {
-    console.error("Load failed:", err);
-    alert("Failed to load configuration.");
-    return null;
-  }
-}
-
-async function fetchConfigNames() {
-  try {
-    const res = await fetch("/api/list-configs");
-    if (!res.ok) throw new Error("List fetch failed");
-    return await res.json();
-  } catch (err) {
-    console.error("Error fetching config names:", err);
-    return [];
-  }
-}
-
-function JobConfigPage({ onStart }) {
   const [jobName, setJobName] = useState('');
   const [rawPrefixInput, setRawPrefixInput] = useState('A');
   const [lineupsPerPrefix, setLineupsPerPrefix] = useState(2);
   const [pduPerLineup, setPduPerLineup] = useState(2);
-  const [lineupTripSetting, setLineupTripSetting] = useState(1200);
-  const [pduMainBreakerTrip, setPduMainBreakerTrip] = useState(996);
+  const [lineupMaxKW, setLineupMaxKW] = useState(1200);
   const [pduMainVoltage, setPduMainVoltage] = useState(480);
-  const [subfeedBreakerTrip, setSubfeedBreakerTrip] = useState(600);
   const [subfeedVoltage, setSubfeedVoltage] = useState(415);
-  const [saveName, setSaveName] = useState("");
+  const [saveName, setSaveName] = useState('');
   const [savedNames, setSavedNames] = useState([]);
 
   useEffect(() => {
-    fetchConfigNames().then(setSavedNames);
+    async function fetchConfigNames() {
+      try {
+        const res = await fetch('/api/list-configs');
+        if (!res.ok) throw new Error('List fetch failed');
+        const names = await res.json();
+        setSavedNames(names);
+      } catch (err) {
+        console.error('Error fetching config names:', err);
+      }
+    }
+    fetchConfigNames();
   }, []);
 
-  const parsedPrefixes = rawPrefixInput
-    .toUpperCase()
-    .split(',')
-    .map((x) => x.trim())
-    .filter((x) => x);
+  const parsedPrefixes = rawPrefixInput.toUpperCase().split(',').map(x => x.trim()).filter(x => x);
 
-  const lineupNames = parsedPrefixes.flatMap((prefix) =>
-    Array.from({ length: lineupsPerPrefix }, (_, i) =>
-      `${prefix}${String(i + 1).padStart(2, '0')}`
-    )
+  const lineupNames = parsedPrefixes.flatMap(prefix =>
+    Array.from({ length: lineupsPerPrefix }, (_, i) => `${prefix}${String(i + 1).padStart(2, '0')}`)
   );
 
-  const pduConfigs = lineupNames.map((lineup) =>
+  const pduConfigs = lineupNames.map(lineup =>
     Array.from({ length: pduPerLineup }, (_, i) => `PDU-${lineup}-${i + 1}`)
   );
 
@@ -78,155 +44,126 @@ function JobConfigPage({ onStart }) {
     jobName,
     lineupNames,
     pduConfigs,
-    lineupTripSetting,
-    pduMainBreakerTrip,
+    lineupMaxKW,
     pduMainVoltage,
-    subfeedBreakerTrip,
-    subfeedVoltage
+    subfeedVoltage,
   };
 
   const handleStart = () => {
-    onStart(config);
+    router.push({
+      pathname: '/planner',
+      query: { config: JSON.stringify(config) },
+    });
   };
 
-  const handleLoad = async (selected) => {
-    const loaded = await loadConfigByName(selected);
-    console.log("Loaded config:", loaded);
-    if (loaded) {
-      const extractedPrefixes = loaded.lineupNames
-        .map(name => name.replace(/\d+/g, ''))
-        .filter((v, i, a) => a.indexOf(v) === i);
+  const handleLoad = async () => {
+    if (!saveName) return;
+    try {
+      const loaded = await fetch(`/api/load-config?name=${encodeURIComponent(saveName)}`)
+        .then(res => res.json());
+      if (loaded) {
+        const extractedPrefixes = loaded.lineupNames.map(name => name.replace(/\d+/g, '')).filter((v, i, a) => a.indexOf(v) === i);
 
-      setJobName(loaded.jobName || "");
-      setRawPrefixInput(extractedPrefixes.join(",") || "A");
-      setLineupsPerPrefix(loaded.lineupNames.length / extractedPrefixes.length);
-      setPduPerLineup(loaded.pduConfigs?.[0]?.length || 2);
-      setLineupTripSetting(loaded.lineupTripSetting);
-      setPduMainBreakerTrip(loaded.pduMainBreakerTrip);
-      setPduMainVoltage(loaded.pduMainVoltage);
-      setSubfeedBreakerTrip(loaded.subfeedBreakerTrip);
-      setSubfeedVoltage(loaded.subfeedVoltage);
+        setJobName(loaded.jobName || '');
+        setRawPrefixInput(extractedPrefixes.join(',') || 'A');
+        setLineupsPerPrefix(loaded.lineupNames.length / extractedPrefixes.length);
+        setPduPerLineup(loaded.pduConfigs?.[0]?.length || 2);
+        setLineupMaxKW(loaded.lineupMaxKW || 1200);
+        setPduMainVoltage(loaded.pduMainVoltage || 480);
+        setSubfeedVoltage(loaded.subfeedVoltage || 415);
+      }
+    } catch (err) {
+      console.error('Failed to load configuration', err);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 overflow-y-auto">
-      <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-6">Power Distribution Setup</h2>
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow space-y-4">
+        <h2 className="text-2xl font-bold mb-6">Job Configuration</h2>
 
-        <label className="block mb-1 font-medium">Load Saved Config:</label>
+        <label className="block font-medium">Load Saved Project:</label>
         <select
-          onChange={(e) => handleLoad(e.target.value)}
-          className="mb-6 w-full bg-white border border-gray-300 text-black px-3 py-2 rounded"
+          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
+          value={saveName}
+          onChange={(e) => setSaveName(e.target.value)}
         >
-          <option value="">Select config...</option>
+          <option value="">Select...</option>
           {savedNames.map((name) => (
             <option key={name} value={name}>{name}</option>
           ))}
         </select>
+        <button
+          onClick={handleLoad}
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 w-full rounded mb-4"
+        >
+          Load Project
+        </button>
 
-        <label className="block mb-1 font-medium">Job Name:</label>
+        <label className="block font-medium">Job Name:</label>
         <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-4"
+          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
           value={jobName}
           onChange={(e) => setJobName(e.target.value)}
         />
 
-        <label className="block mb-1 font-medium">Lineup Prefix (comma separated):</label>
+        <label className="block font-medium">Lineup Prefix (comma-separated):</label>
         <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-4"
+          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
           value={rawPrefixInput}
           onChange={(e) => setRawPrefixInput(e.target.value)}
         />
 
-        <label className="block mb-1 font-medium">Lineups Per Prefix:</label>
+        <label className="block font-medium">Lineups Per Prefix:</label>
         <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-2"
           type="number"
+          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
           min={1}
           value={lineupsPerPrefix}
           onChange={(e) => setLineupsPerPrefix(Number(e.target.value))}
         />
-        <div className="text-sm text-gray-600 mb-4">
-          Preview: {lineupNames.join(', ')}
-        </div>
 
-        <label className="block mb-1 font-medium">PDUs per lineup:</label>
+        <label className="block font-medium">PDUs per Lineup:</label>
         <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-2"
           type="number"
+          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
           min={1}
           value={pduPerLineup}
           onChange={(e) => setPduPerLineup(Number(e.target.value))}
         />
-        <div className="text-sm text-gray-600 mb-4">
-          Preview PDUs: {pduConfigs.flat().join(', ')}
-        </div>
 
-        <h3 className="text-lg font-semibold mt-6 mb-2">Breaker & Voltage Settings</h3>
+        <h3 className="text-lg font-semibold mt-6">Power Settings</h3>
 
-        <label className="block mb-1">Lineup Trip Setting (A):</label>
+        <label className="block font-medium">Lineup Max Load (kW):</label>
         <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-4"
           type="number"
-          value={lineupTripSetting}
-          onChange={(e) => setLineupTripSetting(Number(e.target.value))}
+          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
+          value={lineupMaxKW}
+          onChange={(e) => setLineupMaxKW(Number(e.target.value))}
         />
 
-        <label className="block mb-1">PDU Main Breaker Trip (A):</label>
+        <label className="block font-medium">PDU Main Voltage (V):</label>
         <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-4"
           type="number"
-          value={pduMainBreakerTrip}
-          onChange={(e) => setPduMainBreakerTrip(Number(e.target.value))}
-        />
-
-        <label className="block mb-1">PDU Main Voltage (V):</label>
-        <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-4"
-          type="number"
+          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
           value={pduMainVoltage}
           onChange={(e) => setPduMainVoltage(Number(e.target.value))}
         />
 
-        <label className="block mb-1">Subfeed Breaker Trip (A):</label>
+        <label className="block font-medium">Subfeed Voltage (V):</label>
         <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-4"
           type="number"
-          value={subfeedBreakerTrip}
-          onChange={(e) => setSubfeedBreakerTrip(Number(e.target.value))}
-        />
-
-        <label className="block mb-1">Subfeed Voltage (V):</label>
-        <input
-          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded mb-6"
-          type="number"
+          className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
           value={subfeedVoltage}
           onChange={(e) => setSubfeedVoltage(Number(e.target.value))}
         />
 
         <button
           onClick={handleStart}
-          className="bg-blue-600 text-white px-4 py-2 rounded w-full mb-4"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 w-full rounded mt-6"
         >
           Start Planner
         </button>
-
-        <div>
-          <input
-            type="text"
-            placeholder="Config name"
-            value={saveName}
-            onChange={(e) => setSaveName(e.target.value)}
-            className="bg-white text-black border px-3 py-2 rounded w-full mb-2"
-          />
-          <button
-            onClick={() => saveToDatabase(saveName, config)}
-            className="bg-green-600 text-white px-4 py-2 rounded w-full"
-          >
-            Save Config
-          </button>
-        </div>
       </div>
     </div>
   );
