@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Trash2 } from 'lucide-react'; // Install lucide-react if you haven't
+import { Trash2 } from 'lucide-react'; 
 
 function JobConfigPage() {
   const router = useRouter();
