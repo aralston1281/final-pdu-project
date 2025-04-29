@@ -1,3 +1,5 @@
+// src/components/PlannerHeader.js (Updated with Smart 3-Stage Warnings)
+
 import React from 'react';
 
 function PlannerHeader({
@@ -10,48 +12,64 @@ function PlannerHeader({
   pduMaxKW,
   totalAvailableCapacityMW,
   totalCustomKW,
+  totalDeratedCapacityMW,
 }) {
-  const formatPower = (valueKW) => {
-    return valueKW >= 1000
-      ? `${(valueKW / 1000).toFixed(2)} MW`
-      : `${valueKW.toFixed(2)} kW`;
-  };
-
   return (
-    <div className="mb-6 bg-white p-6 rounded-lg shadow font-sans">
-      <div className="flex flex-wrap gap-4 items-center">
-        <label className="flex items-center gap-2">
-          Target Load (MW):
+    <div className="bg-gray-200 p-4 rounded-lg mb-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block font-semibold">Target Load (MW)</label>
           <input
             type="number"
             value={targetLoadMW}
             onChange={(e) => setTargetLoadMW(Number(e.target.value))}
-            className="bg-white text-black border border-gray-300 rounded px-3 py-2 w-24"
+            className="bg-white border border-gray-300 px-3 py-2 rounded w-full"
+            min={0}
+            step={0.1}
           />
-        </label>
-        <div className="flex gap-2">
+        </div>
+        <div className="flex items-end gap-4">
           <button
             onClick={autoDistribute}
-            disabled={totalPDUs === 0}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-full"
           >
-            Equally Distribute
+            Auto Distribute
           </button>
           <button
             onClick={resetAll}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded"
+            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded"
           >
-            Clear All
+            Reset
           </button>
         </div>
       </div>
 
-      <div className="mt-4 space-y-1 text-sm">
-        <p>Total PDUs in use: <strong>{totalPDUs}</strong></p>
-        <p>Required Even Load per PDU: <strong>{formatPower(evenLoadPerPDU)}</strong></p>
-        <p>Max Capacity per Selected PDU: <strong>{formatPower(pduMaxKW)}</strong></p>
-        <p>Total Available System Capacity: <strong>{totalAvailableCapacityMW} MW</strong></p>
-        <p>Total Custom Load: <strong>{formatPower(totalCustomKW)}</strong></p>
+      <div className="mt-4 text-sm space-y-2">
+        <div><span className="font-semibold">Total PDUs:</span> {totalPDUs}</div>
+        <div><span className="font-semibold">PDU Max Load:</span> {pduMaxKW.toFixed(2)} kW</div>
+        <div><span className="font-semibold">Even Load / PDU:</span> {evenLoadPerPDU.toFixed(2)} kW</div>
+        <div><span className="font-semibold">Total Rated System Capacity:</span> {totalAvailableCapacityMW} MW</div>
+        <div><span className="font-semibold text-red-600">Total Derated System Capacity (80%):</span> {totalDeratedCapacityMW.toFixed(2)} MW</div>
+        <div><span className="font-semibold">Total Custom Load Assigned:</span> {totalCustomKW} MW</div>
+
+        {/* Smart Warning Messages */}
+        {parseFloat(totalCustomKW) > totalDeratedCapacityMW && parseFloat(totalCustomKW) <= parseFloat(totalAvailableCapacityMW) && (
+          <div className="mt-2 text-yellow-500 font-bold">
+            ⚠️ Load exceeds 80% derated capacity but is within full rating.
+          </div>
+        )}
+
+        {parseFloat(totalCustomKW) > parseFloat(totalAvailableCapacityMW) && (
+          <div className="mt-2 text-red-600 font-bold">
+            ❌ Load exceeds full system rated capacity!
+          </div>
+        )}
+
+        {targetLoadMW > totalDeratedCapacityMW && (
+          <div className="mt-2 text-red-600 font-bold">
+            ⚠️ Target Load exceeds 80% Derated System Capacity!
+          </div>
+        )}
       </div>
     </div>
   );
