@@ -152,7 +152,7 @@ function LoadDistributionPlanner({ config }) {
       <li><strong>Select PDUs:</strong> Use the PDU buttons to enable/disable specific PDUs.</li>
       <li><strong>Adjust Subfeeds:</strong> Check or uncheck the subfeed breakers under each PDU.</li>
       <li><strong>Review Warnings:</strong> Watch for overload or capacity alerts in red/yellow.</li>
-      <li><strong>Reset:</strong> Click "Reset" to start over fresh.</li>
+      <li><strong>Reset:</strong> Click &quot;Reset&quot; to clear and start over.</li>
     </ul>
   </div>
 ) : (
