@@ -25,7 +25,7 @@ function LineupSection({
           <span className="text-red-600">⚠️ Lineup max capacity reached!</span>
         )}
       </h3>
-      <div className={`flex flex-wrap gap-4 ${pduList.length === 1 ? 'justify-center' : 'justify-start'}`}>
+    <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
         {pduList.map((pdu, pj) => {
           const index =
             selectedLineups
