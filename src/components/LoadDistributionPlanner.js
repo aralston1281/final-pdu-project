@@ -147,7 +147,7 @@ function LoadDistributionPlanner({ config }) {
     <strong>👋 Roman, read this carefully. Then scroll back up and read it like you actually mean it!</strong>
     <ul className="list-disc list-inside mt-2 space-y-1">
       <li><strong>Enter Required Load:</strong> Input target load (MW) you will need.</li>
-      <li><strong>Adjust Load:</strong> Manually input kW or use &quot;Auto Distribute&quot; to spread it evenly.</li>
+      <li><strong>Adjust Load:</strong> Manually input kW or use "Auto Distribute" to spread it evenly.</li>
       <li><strong>Select Lineups:</strong> Use the blue/red buttons to toggle lineups.</li>
       <li><strong>Select PDUs:</strong> Use the PDU buttons to enable/disable specific PDUs.</li>
       <li><strong>Adjust Subfeeds:</strong> Check or uncheck the subfeed breakers under each PDU.</li>
