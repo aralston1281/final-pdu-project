@@ -22,7 +22,7 @@ function LineupSection({
       <h3 className="text-lg font-semibold mb-4">
         Lineup {lineup}{' '}
         {lineupWarnings[lineup] && (
-          <span className="text-red-600">⚠️ Max capacity reached</span>
+          <span className="text-red-600">⚠️ Lineup max capacity reached!</span>
         )}
       </h3>
       <div className={`flex flex-wrap gap-4 ${pduList.length === 1 ? 'justify-center' : 'justify-start'}`}>
