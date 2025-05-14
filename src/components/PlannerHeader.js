@@ -15,41 +15,42 @@ function PlannerHeader({
   totalDeratedCapacityMW,
   unassignedKW,
 }) {
-  return (
-    <div className="bg-gray-200 p-4 rounded-lg mb-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block font-semibold">Target Load (MW)</label>
-          <p className="text-xs text-gray-600 italic mt-1">
-           Click Auto Distribute after every change to update load distribution.
+ return (
+  <div className="bg-gray-200 p-4 rounded-lg mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Left side: Input + Help text */}
+      <div>
+        <label className="block font-semibold">Target Load (MW)</label>
+        <p className="text-xs text-gray-600 italic mt-1">
+          Click &quot;Auto Distribute&quot; after every change to update load distribution.
         </p>
-          <input
-            type="number"
-            value={targetLoadMW}
-            onChange={(e) => setTargetLoadMW(Number(e.target.value))}
-            className="bg-white border border-gray-300 px-3 py-2 rounded w-full"
-            min={0}
-            step={0.1}
-          />
-        </div>
-        <div className="flex items-end gap-4">
-          <button
-            onClick={autoDistribute}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-full"
-          >
-            Auto Distribute
-          </button>
-          
-          <button
-            onClick={resetAll}
-            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded"
-          >
-            Reset
-          </button>
-        </div>
-        
- 
+        <input
+          type="number"
+          value={targetLoadMW}
+          onChange={(e) => setTargetLoadMW(Number(e.target.value))}
+          className="bg-white border border-gray-300 px-3 py-2 rounded w-full mt-2"
+          min={0}
+          step={0.1}
+        />
       </div>
+
+      {/* Right side: Buttons, responsive layout */}
+      <div className="flex flex-col sm:flex-row items-stretch gap-2 sm:items-end">
+        <button
+          onClick={autoDistribute}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-full sm:w-auto"
+        >
+          Auto Distribute
+        </button>
+
+        <button
+          onClick={resetAll}
+          className="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded w-full sm:w-auto"
+        >
+          Reset
+        </button>
+      </div>
+    </div>
 
       <div className="mt-4 text-sm space-y-2">
         <div><span className="font-semibold">Total PDUs:</span> {totalPDUs}</div>
