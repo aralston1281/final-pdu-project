@@ -8,8 +8,8 @@ import PlannerHeader from '@/components/PlannerHeader';
 
 function LoadDistributionPlanner({ config }) {
   const { lineups: initialLineups, pduUsage: defaultPduUsage } = parseConfig(config);
-
-  const [targetLoadMW, setTargetLoadMW] = useState(5);
+  const [showTutorial, setShowTutorial] = useState(true);
+  const [targetLoadMW, setTargetLoadMW] = useState(12);
   const [selectedLineups, setSelectedLineups] = useState(initialLineups);
   const [customDistribution, setCustomDistribution] = useState([]);
   const [breakerSelection, setBreakerSelection] = useState({});
@@ -135,6 +135,36 @@ function LoadDistributionPlanner({ config }) {
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow">
         <h1 className="text-xl font-bold mb-6">{config.jobName} — Load Distribution Planner</h1>
+        {showTutorial ? (
+  <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
+    <button
+      onClick={() => setShowTutorial(false)}
+      className="absolute top-2 right-2 text-yellow-800 hover:text-yellow-600 font-bold"
+      title="Collapse tutorial"
+    >
+      ×
+    </button>
+    <strong>👋 Roman, read this carefully. Then scroll back up and read it like you actually mean it!</strong>
+    <ul className="list-disc list-inside mt-2 space-y-1">
+      <li><strong>Enter Required Load:</strong> Input target load (MW) you will need.</li>
+      <li><strong>Adjust Load:</strong> Manually input kW or use "Auto Distribute" to spread it evenly.</li>
+      <li><strong>Select Lineups:</strong> Use the blue/red buttons to toggle lineups.</li>
+      <li><strong>Select PDUs:</strong> Use the PDU buttons to enable/disable specific PDUs.</li>
+      <li><strong>Adjust Subfeeds:</strong> Check or uncheck the subfeed breakers under each PDU.</li>
+      <li><strong>Review Warnings:</strong> Watch for overload or capacity alerts in red/yellow.</li>
+      <li><strong>Reset:</strong> Click "Reset" to start over fresh.</li>
+    </ul>
+  </div>
+) : (
+  <div className="mb-6">
+    <button
+      onClick={() => setShowTutorial(true)}
+className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-half"    >
+      Show Help
+    </button>
+  </div>
+)}
+
 
         <PlannerHeader
           targetLoadMW={targetLoadMW}
@@ -147,8 +177,17 @@ function LoadDistributionPlanner({ config }) {
           totalAvailableCapacityMW={totalAvailableCapacityMW}
           totalCustomKW={totalCustomAssignedMW}
           totalDeratedCapacityMW={totalDeratedCapacityMW}
+          unassignedKW={unassignedKW}
         />
 
+        {/* Load Distribution Section */}
+        {unassignedKW > 0 && (
+          <div className="text-red-600 font-bold mt-6">
+            ⚠️ {formatPower(unassignedKW)} could not be assigned due to selected system limits.
+          </div>
+        )}
+        
+        
         {/* Lineups and PDUs Display */}
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-2">Lineups & PDUs in Use</h3>
@@ -188,12 +227,7 @@ function LoadDistributionPlanner({ config }) {
           </div>
         </div>
 
-        {/* Load Distribution Section */}
-        {unassignedKW > 0 && (
-          <div className="text-red-600 font-bold mt-6">
-            ⚠️ {formatPower(unassignedKW)} could not be assigned due to system limits.
-          </div>
-        )}
+        
 
         {selectedLineups.map((lineup, li) => (
           <LineupSection
