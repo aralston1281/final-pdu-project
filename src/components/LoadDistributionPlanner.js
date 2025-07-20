@@ -144,7 +144,6 @@ function LoadDistributionPlanner({ config }) {
     >
       ×
     </button>
-    <strong>👋 Roman, read this carefully. Then scroll back up and read it like you actually mean it!</strong>
     <ul className="list-disc list-inside mt-2 space-y-1">
       <li><strong>Enter Required Load:</strong> Input target load (MW) you will need.</li>
       <li><strong>Adjust Load:</strong> Manually input kW or use &quot;Auto Distribute&quot; to spread it evenly.</li>
