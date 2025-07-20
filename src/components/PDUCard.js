@@ -23,7 +23,6 @@ function PDUCard({
     <div
       className={`w-full sm:${pduListLength === 1 ? 'w-full' : 'w-1/2'} bg-gray-50 p-4 border border-gray-300 rounded-lg`}
     >
-
       <div className="mb-2 font-semibold">
         <strong>{pduKey}</strong> — Load:
         <input
@@ -58,10 +57,11 @@ function PDUCard({
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => toggleSubfeed(pduKey, i)}
+                  className="w-5 h-5 mb-1"
                 />
                 S{i + 1}
                 <span className={overLimit ? 'text-red-600' : 'text-gray-500'}>
-                  {isSelected ? `${feedLoad.toFixed(2)} kW / ${formatPower(maxSubfeedKW)}` : ''}
+                  {isSelected ? `${feedLoad.toFixed(1)} kW / ${formatPower(maxSubfeedKW)}` : ''}
                   {overLimit ? ' ⚠️' : ''}
                 </span>
               </label>
