@@ -84,7 +84,8 @@ function LoadDistributionPlanner({ config }) {
 
   const handleCustomChange = (index, value) => {
     const updated = [...customDistribution];
-    updated[index] = Number(parseFloat(value).toFixed(2));
+    const num = parseFloat(value);
+    updated[index] = isNaN(num) ? 0 : Number(num.toFixed(2));
     setCustomDistribution(updated);
   };
 
@@ -110,6 +111,16 @@ function LoadDistributionPlanner({ config }) {
       const updated = current.includes(pduIndex)
         ? current.filter((p) => p !== pduIndex)
         : [...current, pduIndex].sort();
+
+      const pduKey = `PDU-${lineup}-${pduIndex + 1}`;
+      setBreakerSelection((prevBreakers) => {
+        const updatedBreakers = { ...prevBreakers };
+        for (let i = 0; i < subfeedsPerPDU; i++) {
+          delete updatedBreakers[`${pduKey}-S${i}`];
+        }
+        return updatedBreakers;
+      });
+
       return { ...prev, [lineup]: updated };
     });
   };
@@ -135,35 +146,36 @@ function LoadDistributionPlanner({ config }) {
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow">
         <h1 className="text-xl font-bold mb-6">{config.jobName} — Load Distribution Planner</h1>
-        {showTutorial ? (
-  <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
-    <button
-      onClick={() => setShowTutorial(false)}
-      className="absolute top-2 right-2 text-yellow-800 hover:text-yellow-600 font-bold"
-      title="Collapse tutorial"
-    >
-      ×
-    </button>
-    <ul className="list-disc list-inside mt-2 space-y-1">
-      <li><strong>Enter Required Load:</strong> Input target load (MW) you will need.</li>
-      <li><strong>Adjust Load:</strong> Manually input kW or use &quot;Auto Distribute&quot; to spread it evenly.</li>
-      <li><strong>Select Lineups:</strong> Use the blue/red buttons to toggle lineups.</li>
-      <li><strong>Select PDUs:</strong> Use the PDU buttons to enable/disable specific PDUs.</li>
-      <li><strong>Adjust Subfeeds:</strong> Check or uncheck the subfeed breakers under each PDU.</li>
-      <li><strong>Review Warnings:</strong> Watch for overload or capacity alerts in red/yellow.</li>
-      <li><strong>Reset:</strong> Click &quot;Reset&quot; to clear and start over.</li>
-    </ul>
-  </div>
-) : (
-  <div className="mb-6">
-    <button
-      onClick={() => setShowTutorial(true)}
-className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-half"    >
-      Show Help
-    </button>
-  </div>
-)}
 
+        {showTutorial ? (
+          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
+            <button
+              onClick={() => setShowTutorial(false)}
+              className="absolute top-2 right-2 text-yellow-800 hover:text-yellow-600 font-bold"
+              title="Collapse tutorial"
+            >
+              ×
+            </button>
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li><strong>Enter Required Load:</strong> Input target load (MW) you will need.</li>
+              <li><strong>Adjust Load:</strong> Manually input kW or use &quot;Auto Distribute&quot; to spread it evenly.</li>
+              <li><strong>Select Lineups:</strong> Use the blue/red buttons to toggle lineups.</li>
+              <li><strong>Select PDUs:</strong> Use the PDU buttons to enable/disable specific PDUs.</li>
+              <li><strong>Adjust Subfeeds:</strong> Check or uncheck the subfeed breakers under each PDU.</li>
+              <li><strong>Review Warnings:</strong> Watch for overload or capacity alerts in red/yellow.</li>
+              <li><strong>Reset:</strong> Click &quot;Reset&quot; to clear and start over.</li>
+            </ul>
+          </div>
+        ) : (
+          <div className="mb-6">
+            <button
+              onClick={() => setShowTutorial(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-half"
+            >
+              Show Help
+            </button>
+          </div>
+        )}
 
         <PlannerHeader
           targetLoadMW={targetLoadMW}
@@ -179,17 +191,30 @@ className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 roun
           unassignedKW={unassignedKW}
         />
 
-        {/* Load Distribution Section */}
         {unassignedKW > 0 && (
           <div className="text-red-600 font-bold mt-6">
             ⚠️ {formatPower(unassignedKW)} could not be assigned due to selected system limits.
           </div>
         )}
-        
-        
-        {/* Lineups and PDUs Display */}
+
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-2">Lineups & PDUs in Use</h3>
+
+          <div className="mb-4 flex gap-4">
+            <button
+              onClick={() => setSelectedLineups([...initialLineups])}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded"
+            >
+              Select All
+            </button>
+            <button
+              onClick={() => setSelectedLineups([])}
+              className="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded"
+            >
+              Deselect All
+            </button>
+          </div>
+
           <div className="flex flex-col gap-4">
             {initialLineups.map((lineup) => {
               const lineupIdx = initialLineups.indexOf(lineup);
@@ -225,8 +250,6 @@ className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 roun
             })}
           </div>
         </div>
-
-        
 
         {selectedLineups.map((lineup, li) => (
           <LineupSection
