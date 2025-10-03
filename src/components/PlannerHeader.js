@@ -14,6 +14,7 @@ function PlannerHeader({
   totalCustomKW,
   totalDeratedCapacityMW,
   unassignedKW,
+  autoDistributeEnabled = true,
 }) {
  return (
   <div className="bg-gray-200 p-4 rounded-lg mb-6">
@@ -22,7 +23,9 @@ function PlannerHeader({
       <div>
         <label className="block font-semibold">Target Load (MW)</label>
         <p className="text-xs text-gray-600 italic mt-1">
-          Click &quot;Auto Distribute&quot; after every change to update load distribution.
+          {autoDistributeEnabled 
+            ? "Load automatically updates as you make changes."
+            : "Click \"Auto Distribute\" after every change to update load distribution."}
         </p>
         <input
           type="number"
@@ -38,7 +41,12 @@ function PlannerHeader({
       <div className="flex flex-col sm:flex-row items-stretch gap-2 sm:items-end">
         <button
           onClick={autoDistribute}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-full sm:w-auto"
+          disabled={autoDistributeEnabled}
+          className={`font-semibold px-4 py-2 rounded w-full sm:w-auto ${
+            autoDistributeEnabled 
+              ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
         >
           Auto Distribute
         </button>

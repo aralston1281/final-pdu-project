@@ -14,10 +14,15 @@ function PDUCard({
   maxSubfeedKW,
   formatPower,
   pduListLength = 2,
+  networkedLoadbanks = true,
+  lineupTotalLoad = 0,
+  lineupSubfeedCount = 0,
 }) {
   const selectedFeeds = Array.from({ length: subfeedsPerPDU }).filter(
     (_, i) => breakerSelection[`${pduKey}-S${i}`]
   );
+  
+  const pduSelectedCount = selectedFeeds.length;
 
   return (
     <div
@@ -44,8 +49,19 @@ function PDUCard({
           {Array.from({ length: subfeedsPerPDU }).map((_, i) => {
             const key = `${pduKey}-S${i}`;
             const isSelected = !!breakerSelection[key];
-            const feedLoad =
-              isSelected && selectedFeeds.length > 0 ? load / selectedFeeds.length : 0;
+            
+            // Calculate feed load based on mode
+            let feedLoad = 0;
+            if (isSelected) {
+              if (networkedLoadbanks) {
+                // Networked: divide lineup total across all lineup subfeeds
+                feedLoad = lineupSubfeedCount > 0 ? lineupTotalLoad / lineupSubfeedCount : 0;
+              } else {
+                // Per-PDU: divide PDU load across this PDU's subfeeds
+                feedLoad = pduSelectedCount > 0 ? load / pduSelectedCount : 0;
+              }
+            }
+            
             const overLimit = feedLoad > maxSubfeedKW;
 
             return (

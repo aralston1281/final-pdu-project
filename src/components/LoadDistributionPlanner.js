@@ -22,17 +22,21 @@ function LoadDistributionPlanner({ config }) {
   });
   const [lineupWarnings, setLineupWarnings] = useState({});
   const [unassignedKW, setUnassignedKW] = useState(0);
+  const [networkedLoadbanks, setNetworkedLoadbanks] = useState(true);
+  const [autoDistributeEnabled, setAutoDistributeEnabled] = useState(true);
 
   const subfeedsPerPDU = 8;
   const subfeedVoltage = config.subfeedVoltage || 415;
-
-  const lineupMaxKW = config.lineupMaxKW || 1500;
-  const numberOfPDUsPerLineup = config.pduConfigs?.[0]?.length || 2;
-  const pduMaxKW = lineupMaxKW / numberOfPDUsPerLineup;
+  const subfeedBreakerAmps = config.subfeedBreakerAmps || 400;
+  const pduMainVoltage = config.pduMainVoltage || 480;
+  const pduMainBreakerAmps = config.pduMainBreakerAmps || 1000;
 
   const powerFactor = 1.0;
-  const subfeedBreakerAmps = 600;
+  const pduMaxKW = calculateMaxSubfeedKW(pduMainVoltage, pduMainBreakerAmps, false, powerFactor);
   const maxSubfeedKW = calculateMaxSubfeedKW(subfeedVoltage, subfeedBreakerAmps, false, powerFactor);
+  
+  const lineupMaxKW = config.lineupMaxKW || 1500;
+  const numberOfPDUsPerLineup = config.pduConfigs?.[0]?.length || 2;
 
   const activeLineupCapacityKW = selectedLineups.reduce((total, lineup) => {
     const activePDUs = pduUsage[lineup]?.length || 0;
@@ -79,7 +83,7 @@ function LoadDistributionPlanner({ config }) {
     0
   );
   const evenLoadPerPDU = totalPDUs > 0 ? (targetLoadMW * 1000) / totalPDUs : 0;
-  const totalAvailableCapacityMW = ((totalPDUs * pduMaxKW) / 1000).toFixed(2);
+  const totalAvailableCapacityMW = ((selectedLineups.length * lineupMaxKW) / 1000).toFixed(2);
   const totalCustomAssignedMW = (customDistribution.reduce((acc, val) => acc + (val || 0), 0) / 1000).toFixed(2);
 
   const handleCustomChange = (index, value) => {
@@ -88,6 +92,34 @@ function LoadDistributionPlanner({ config }) {
     updated[index] = isNaN(num) ? 0 : Number(num.toFixed(2));
     setCustomDistribution(updated);
   };
+
+  // Check for lineup overload warnings
+  useEffect(() => {
+    const warnings = {};
+    const lineupLoads = {};
+
+    // Calculate total load per lineup
+    selectedLineups.forEach((lineup, lineupIndex) => {
+      const pduList = pduUsage[lineup] || [];
+      let lineupTotalLoad = 0;
+
+      pduList.forEach((pduIdx) => {
+        const globalIndex = selectedLineups
+          .slice(0, lineupIndex)
+          .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pduList.indexOf(pduIdx);
+        lineupTotalLoad += customDistribution[globalIndex] || 0;
+      });
+
+      lineupLoads[lineup] = lineupTotalLoad;
+
+      // Warn if lineup total exceeds max
+      if (lineupTotalLoad > lineupMaxKW) {
+        warnings[lineup] = true;
+      }
+    });
+
+    setLineupWarnings(warnings);
+  }, [customDistribution, selectedLineups, pduUsage, lineupMaxKW]);
 
   const handleSubfeedToggle = (pduKey, subfeedIndex) => {
     setBreakerSelection((prev) => {
@@ -124,6 +156,26 @@ function LoadDistributionPlanner({ config }) {
       return { ...prev, [lineup]: updated };
     });
   };
+
+  // Auto-distribute when relevant parameters change
+  useEffect(() => {
+    if (autoDistributeEnabled) {
+      const { distributed, unassignedKW, lineupWarnings } = autoDistributeLoad({
+        selectedLineups,
+        pduUsage,
+        breakerSelection,
+        subfeedsPerPDU,
+        maxSubfeedKW,
+        pduMaxKW,
+        targetLoadMW,
+        lineupMaxKW,
+      });
+
+      setCustomDistribution(distributed.map((val) => parseFloat(val.toFixed(2))));
+      setUnassignedKW(unassignedKW);
+      setLineupWarnings(lineupWarnings);
+    }
+  }, [targetLoadMW, selectedLineups, pduUsage, breakerSelection, autoDistributeEnabled, subfeedsPerPDU, maxSubfeedKW, pduMaxKW, lineupMaxKW]);
 
   const autoDistribute = () => {
     const { distributed, unassignedKW, lineupWarnings } = autoDistributeLoad({
@@ -177,6 +229,47 @@ function LoadDistributionPlanner({ config }) {
           </div>
         )}
 
+        {/* Settings Toggles */}
+        <div className="mb-6 space-y-4">
+          <div className="p-4 bg-gray-100 rounded-lg border border-gray-300">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoDistributeEnabled}
+                onChange={(e) => setAutoDistributeEnabled(e.target.checked)}
+                className="w-5 h-5 mr-3"
+              />
+              <div>
+                <span className="font-semibold text-lg">Auto-Distribute Load</span>
+                <p className="text-sm text-gray-600 mt-1">
+                  {autoDistributeEnabled 
+                    ? "✓ Load automatically redistributes when you change settings" 
+                    : "Manual mode: Use 'Auto Distribute' button to apply changes"}
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div className="p-4 bg-gray-100 rounded-lg border border-gray-300">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={networkedLoadbanks}
+                onChange={(e) => setNetworkedLoadbanks(e.target.checked)}
+                className="w-5 h-5 mr-3"
+              />
+              <div>
+                <span className="font-semibold text-lg">Networked Loadbanks (Lineup Level)</span>
+                <p className="text-sm text-gray-600 mt-1">
+                  {networkedLoadbanks 
+                    ? "✓ Load distributes evenly across ALL subfeeds in each lineup" 
+                    : "Per-PDU mode: Load distributes only across each PDU's own subfeeds"}
+                </p>
+              </div>
+            </label>
+          </div>
+        </div>
+
         <PlannerHeader
           targetLoadMW={targetLoadMW}
           setTargetLoadMW={setTargetLoadMW}
@@ -189,6 +282,7 @@ function LoadDistributionPlanner({ config }) {
           totalCustomKW={totalCustomAssignedMW}
           totalDeratedCapacityMW={totalDeratedCapacityMW}
           unassignedKW={unassignedKW}
+          autoDistributeEnabled={autoDistributeEnabled}
         />
 
         {unassignedKW > 0 && (
@@ -261,6 +355,7 @@ function LoadDistributionPlanner({ config }) {
             selectedLineups={selectedLineups}
             customDistribution={customDistribution}
             pduMaxKW={pduMaxKW}
+            lineupMaxKW={lineupMaxKW}
             breakerSelection={breakerSelection}
             toggleSubfeed={handleSubfeedToggle}
             handleCustomChange={handleCustomChange}
@@ -268,6 +363,7 @@ function LoadDistributionPlanner({ config }) {
             maxSubfeedKW={maxSubfeedKW}
             lineupWarnings={lineupWarnings}
             formatPower={formatPower}
+            networkedLoadbanks={networkedLoadbanks}
           />
         ))}
       </div>

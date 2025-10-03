@@ -11,7 +11,9 @@ function JobConfigPage() {
   const [pduPerLineup, setPduPerLineup] = useState(2);
   const [lineupMaxKW, setLineupMaxKW] = useState(1500);
   const [pduMainVoltage, setPduMainVoltage] = useState(480);
+  const [pduMainBreakerAmps, setPduMainBreakerAmps] = useState(1000);
   const [subfeedVoltage, setSubfeedVoltage] = useState(415);
+  const [subfeedBreakerAmps, setSubfeedBreakerAmps] = useState(400);
   const [saveName, setSaveName] = useState('');
   const [savedNames, setSavedNames] = useState([]);
   const [newSaveName, setNewSaveName] = useState('');
@@ -47,7 +49,9 @@ function JobConfigPage() {
     pduConfigs,
     lineupMaxKW,
     pduMainVoltage,
+    pduMainBreakerAmps,
     subfeedVoltage,
+    subfeedBreakerAmps,
   };
 
   const handleStart = () => {
@@ -71,7 +75,9 @@ function JobConfigPage() {
         setPduPerLineup(loaded.pduConfigs?.[0]?.length || 2);
         setLineupMaxKW(loaded.lineupMaxKW || 1200);
         setPduMainVoltage(loaded.pduMainVoltage || 480);
+        setPduMainBreakerAmps(loaded.pduMainBreakerAmps || 1000);
         setSubfeedVoltage(loaded.subfeedVoltage || 415);
+        setSubfeedBreakerAmps(loaded.subfeedBreakerAmps || 400);
       }
     } catch (err) {
       console.error('Failed to load configuration', err);
@@ -226,12 +232,28 @@ function JobConfigPage() {
             onChange={(e) => setPduMainVoltage(Number(e.target.value))}
           />
 
+          <label className="block font-medium">PDU Main Breaker (A):</label>
+          <input
+            type="number"
+            className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
+            value={pduMainBreakerAmps}
+            onChange={(e) => setPduMainBreakerAmps(Number(e.target.value))}
+          />
+
           <label className="block font-medium">Subfeed Voltage (V):</label>
           <input
             type="number"
             className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
             value={subfeedVoltage}
             onChange={(e) => setSubfeedVoltage(Number(e.target.value))}
+          />
+
+          <label className="block font-medium">Subfeed Breaker (A):</label>
+          <input
+            type="number"
+            className="bg-white border border-gray-300 text-black px-3 py-2 w-full rounded"
+            value={subfeedBreakerAmps}
+            onChange={(e) => setSubfeedBreakerAmps(Number(e.target.value))}
           />
         </div>
 
