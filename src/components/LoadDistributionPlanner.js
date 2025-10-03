@@ -195,9 +195,18 @@ function LoadDistributionPlanner({ config }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h1 className="text-xl font-bold mb-6">{config.jobName} — Load Distribution Planner</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-10">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-gray-200 mb-6">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <span className="text-3xl">⚡</span>
+            {config.jobName || 'Load Distribution Planner'}
+          </h1>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6">
 
         {showTutorial ? (
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
@@ -230,18 +239,21 @@ function LoadDistributionPlanner({ config }) {
         )}
 
         {/* Settings Toggles */}
-        <div className="mb-6 space-y-4">
-          <div className="p-4 bg-gray-100 rounded-lg border border-gray-300">
-            <label className="flex items-center cursor-pointer">
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-5 bg-white rounded-lg border-2 border-blue-200 shadow-sm hover:shadow-md transition-all">
+            <label className="flex items-start cursor-pointer">
               <input
                 type="checkbox"
                 checked={autoDistributeEnabled}
                 onChange={(e) => setAutoDistributeEnabled(e.target.checked)}
-                className="w-5 h-5 mr-3"
+                className="w-6 h-6 mr-4 mt-1 cursor-pointer"
               />
               <div>
-                <span className="font-semibold text-lg">Auto-Distribute Load</span>
-                <p className="text-sm text-gray-600 mt-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">🔄</span>
+                  <span className="font-bold text-lg text-gray-800">Auto-Distribute Load</span>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed">
                   {autoDistributeEnabled 
                     ? "✓ Load automatically redistributes when you change settings" 
                     : "Manual mode: Use 'Auto Distribute' button to apply changes"}
@@ -250,17 +262,20 @@ function LoadDistributionPlanner({ config }) {
             </label>
           </div>
 
-          <div className="p-4 bg-gray-100 rounded-lg border border-gray-300">
-            <label className="flex items-center cursor-pointer">
+          <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-sm hover:shadow-md transition-all">
+            <label className="flex items-start cursor-pointer">
               <input
                 type="checkbox"
                 checked={networkedLoadbanks}
                 onChange={(e) => setNetworkedLoadbanks(e.target.checked)}
-                className="w-5 h-5 mr-3"
+                className="w-6 h-6 mr-4 mt-1 cursor-pointer"
               />
               <div>
-                <span className="font-semibold text-lg">Networked Loadbanks (Lineup Level)</span>
-                <p className="text-sm text-gray-600 mt-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">🔗</span>
+                  <span className="font-bold text-lg text-gray-800">Networked Loadbanks</span>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed">
                   {networkedLoadbanks 
                     ? "✓ Load distributes evenly across ALL subfeeds in each lineup" 
                     : "Per-PDU mode: Load distributes only across each PDU's own subfeeds"}
@@ -291,22 +306,26 @@ function LoadDistributionPlanner({ config }) {
           </div>
         )}
 
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-2">Lineups & PDUs in Use</h3>
-
-          <div className="mb-4 flex gap-4">
-            <button
-              onClick={() => setSelectedLineups([...initialLineups])}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded"
-            >
-              Select All
-            </button>
-            <button
-              onClick={() => setSelectedLineups([])}
-              className="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded"
-            >
-              Deselect All
-            </button>
+        <div className="mt-8 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <span className="text-3xl">📋</span>
+              Lineups & PDUs
+            </h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedLineups([...initialLineups])}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center gap-2"
+              >
+                <span>✓</span> Select All
+              </button>
+              <button
+                onClick={() => setSelectedLineups([])}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center gap-2"
+              >
+                <span>✕</span> Deselect All
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-4">

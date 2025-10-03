@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PDUCard from '@/components/PDUCard';
+import ProgressBar from '@/components/ProgressBar';
 
 function LineupSection({
   lineup,
@@ -36,51 +37,103 @@ function LineupSection({
     return count + selectedInThisPDU;
   }, 0);
 
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // Check if any PDU in this lineup is overloaded
+  const hasOverloadedPDU = pduList.some((pdu, pj) => {
+    const index = selectedLineups
+      .slice(0, lineupIndex)
+      .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
+    const load = customDistribution[index] || 0;
+    return load > pduMaxKW;
+  });
+
+  // Determine overall lineup status
+  const isOverloaded = lineupWarnings[lineup] || hasOverloadedPDU;
+  const isHighLoad = !isOverloaded && lineupTotalLoad > lineupMaxKW * 0.8;
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow mb-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold">
-          Lineup {lineup}
-        </h3>
-        <div className="text-sm mt-1">
-          <span className={lineupWarnings[lineup] ? 'text-red-600 font-bold' : 'text-gray-600'}>
-            Total Load: {formatPower(lineupTotalLoad)} / {formatPower(lineupMaxKW)}
-            {lineupWarnings[lineup] && ' ⚠️ OVERLOAD!'}
-          </span>
+    <div className="bg-white rounded-lg shadow-md border-2 border-gray-200 mb-6 overflow-hidden transition-all hover:shadow-lg">
+      {/* Lineup Header - Always Visible */}
+      <div 
+        className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">
+              {isExpanded ? '▼' : '▶'}
+            </span>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">
+                Lineup {lineup}
+              </h3>
+              <div className="text-sm text-gray-600 mt-1">
+                {pduList.length} PDU{pduList.length !== 1 ? 's' : ''} • {lineupSubfeedCount} Active Subfeeds
+              </div>
+            </div>
+          </div>
+          
+          {/* Status Badge */}
+          <div className={`px-4 py-2 rounded-full font-semibold text-sm ${
+            isOverloaded
+              ? 'bg-red-100 text-red-800 border-2 border-red-300' 
+              : isHighLoad
+              ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300'
+              : 'bg-green-100 text-green-800 border-2 border-green-300'
+          }`}>
+            {isOverloaded ? '⚠️ OVERLOAD' : isHighLoad ? '⚡ High Load' : '✓ OK'}
+          </div>
+        </div>
+        
+        {/* Progress Bar in Header */}
+        <div className="mt-3">
+          <ProgressBar 
+            current={lineupTotalLoad} 
+            max={lineupMaxKW}
+            label={`${formatPower(lineupTotalLoad)} / ${formatPower(lineupMaxKW)}`}
+            height="h-3"
+          />
         </div>
       </div>
-    <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-        {pduList.map((pdu, pj) => {
-          const index =
-            selectedLineups
-              .slice(0, lineupIndex)
-              .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
-          const pduKey = `PDU-${lineup}-${pdu + 1}`;
-          const load = customDistribution[index] || 0;
 
-          return (
-            <PDUCard
-              key={pduKey}
-              lineup={lineup}
-              pduIndex={pdu}
-              pduKey={pduKey}
-              load={load}
-              maxKW={pduMaxKW}
-              index={index}
-              onChangeLoad={handleCustomChange}
-              breakerSelection={breakerSelection}
-              toggleSubfeed={toggleSubfeed}
-              subfeedsPerPDU={subfeedsPerPDU}
-              maxSubfeedKW={maxSubfeedKW}
-              formatPower={formatPower}
-              pduListLength={pduList.length}
-              networkedLoadbanks={networkedLoadbanks}
-              lineupTotalLoad={lineupTotalLoad}
-              lineupSubfeedCount={lineupSubfeedCount}
-            />
-          );
-        })}
-      </div>
+      {/* Expandable Content */}
+      {isExpanded && (
+        <div className="p-6 bg-white">
+          <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+            {pduList.map((pdu, pj) => {
+              const index =
+                selectedLineups
+                  .slice(0, lineupIndex)
+                  .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
+              const pduKey = `PDU-${lineup}-${pdu + 1}`;
+              const load = customDistribution[index] || 0;
+
+              return (
+                <PDUCard
+                  key={pduKey}
+                  lineup={lineup}
+                  pduIndex={pdu}
+                  pduKey={pduKey}
+                  load={load}
+                  maxKW={pduMaxKW}
+                  index={index}
+                  onChangeLoad={handleCustomChange}
+                  breakerSelection={breakerSelection}
+                  toggleSubfeed={toggleSubfeed}
+                  subfeedsPerPDU={subfeedsPerPDU}
+                  maxSubfeedKW={maxSubfeedKW}
+                  formatPower={formatPower}
+                  pduListLength={pduList.length}
+                  networkedLoadbanks={networkedLoadbanks}
+                  lineupTotalLoad={lineupTotalLoad}
+                  lineupSubfeedCount={lineupSubfeedCount}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

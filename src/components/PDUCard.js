@@ -1,4 +1,5 @@
 import React from 'react';
+import ProgressBar from '@/components/ProgressBar';
 
 function PDUCard({
   lineup,
@@ -23,28 +24,63 @@ function PDUCard({
   );
   
   const pduSelectedCount = selectedFeeds.length;
+  const utilizationPercent = maxKW > 0 ? (load / maxKW) * 100 : 0;
+
+  let statusIcon = '✓';
+  let statusColor = 'text-green-600';
+  let cardBorder = 'border-green-300';
+  
+  if (load > maxKW) {
+    statusIcon = '❌';
+    statusColor = 'text-red-600';
+    cardBorder = 'border-red-400';
+  } else if (utilizationPercent >= 80) {
+    statusIcon = '⚠️';
+    statusColor = 'text-orange-600';
+    cardBorder = 'border-orange-300';
+  } else if (utilizationPercent >= 70) {
+    statusIcon = '⚡';
+    statusColor = 'text-yellow-600';
+    cardBorder = 'border-yellow-300';
+  }
 
   return (
     <div
-      className={`w-full sm:${pduListLength === 1 ? 'w-full' : 'w-1/2'} bg-gray-50 p-4 border border-gray-300 rounded-lg`}
+      className={`w-full sm:${pduListLength === 1 ? 'w-full' : 'w-1/2'} bg-white p-5 border-2 ${cardBorder} rounded-lg shadow-sm hover:shadow-md transition-all`}
     >
-      <div className="mb-2 font-semibold">
-        <strong>{pduKey}</strong> — Load:
-        <input
-          type="number"
-          value={load}
-          onChange={(e) => onChangeLoad(index, e.target.value)}
-          className="ml-2 w-24 border border-gray-300 rounded px-2 py-1"
+      {/* PDU Header */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+            🔌 {pduKey}
+          </h4>
+          <span className={`text-2xl ${statusColor}`}>
+            {statusIcon}
+          </span>
+        </div>
+        
+        {/* Load Input */}
+        <div className="flex items-center gap-2 mb-3">
+          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">Load (kW):</label>
+          <input
+            type="number"
+            value={load}
+            onChange={(e) => onChangeLoad(index, e.target.value)}
+            className="flex-1 border-2 border-gray-300 focus:border-blue-500 rounded-lg px-3 py-2 text-lg font-semibold transition-colors"
+          />
+        </div>
+
+        {/* Progress Bar */}
+        <ProgressBar 
+          current={load} 
+          max={maxKW}
+          label={`${formatPower(load)} / ${formatPower(maxKW)}`}
+          height="h-2"
         />
-        <span className={`ml-4 ${load > maxKW ? 'text-red-600' : 'text-green-600'}`}>
-          {load > maxKW
-            ? `Overloaded (>${formatPower(maxKW)})`
-            : `OK (<${formatPower(maxKW)})`}
-        </span>
       </div>
 
-      <div className="mt-2">
-        <label className="font-semibold block mb-1">Subfeeds:</label>
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <label className="font-semibold block mb-2 text-gray-700">Subfeeds:</label>
         <div className="flex flex-wrap gap-2">
           {Array.from({ length: subfeedsPerPDU }).map((_, i) => {
             const key = `${pduKey}-S${i}`;
@@ -63,23 +99,42 @@ function PDUCard({
             }
             
             const overLimit = feedLoad > maxSubfeedKW;
+            const utilizationPercent = maxSubfeedKW > 0 ? (feedLoad / maxSubfeedKW) * 100 : 0;
+            
+            let subfeedBg = 'bg-gray-100 border-gray-300';
+            if (isSelected) {
+              if (overLimit) subfeedBg = 'bg-red-50 border-red-400';
+              else if (utilizationPercent >= 80) subfeedBg = 'bg-orange-50 border-orange-300';
+              else if (utilizationPercent >= 70) subfeedBg = 'bg-yellow-50 border-yellow-300';
+              else subfeedBg = 'bg-green-50 border-green-300';
+            }
 
             return (
               <label
                 key={key}
-                className="flex flex-col items-center w-16 text-xs text-center"
+                className={`flex flex-col items-center p-2 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${subfeedBg} ${
+                  isSelected ? 'ring-2 ring-blue-300' : ''
+                }`}
+                style={{ minWidth: '80px' }}
               >
                 <input
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => toggleSubfeed(pduKey, i)}
-                  className="w-5 h-5 mb-1"
+                  className="w-5 h-5 mb-1 cursor-pointer"
                 />
-                S{i + 1}
-                <span className={overLimit ? 'text-red-600' : 'text-gray-500'}>
-                  {isSelected ? `${feedLoad.toFixed(1)} kW / ${formatPower(maxSubfeedKW)}` : ''}
-                  {overLimit ? ' ⚠️' : ''}
-                </span>
+                <span className="font-bold text-sm">S{i + 1}</span>
+                {isSelected && (
+                  <div className="text-xs mt-1 text-center">
+                    <div className={`font-semibold ${overLimit ? 'text-red-700' : 'text-gray-700'}`}>
+                      {feedLoad.toFixed(1)} kW
+                    </div>
+                    <div className="text-gray-500 text-[10px]">
+                      / {maxSubfeedKW.toFixed(0)}
+                    </div>
+                    {overLimit && <span className="text-red-600">⚠️</span>}
+                  </div>
+                )}
               </label>
             );
           })}
