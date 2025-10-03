@@ -5,6 +5,7 @@ import { parseConfig } from '@/utils/parseConfig';
 import { calculateMaxSubfeedKW, autoDistributeLoad } from '@/utils/loadMath';
 import LineupSection from '@/components/LineupSection';
 import PlannerHeader from '@/components/PlannerHeader';
+import CalculationSummary from '@/components/CalculationSummary';
 
 function LoadDistributionPlanner({ config }) {
   const { lineups: initialLineups, pduUsage: defaultPduUsage } = parseConfig(config);
@@ -85,6 +86,79 @@ function LoadDistributionPlanner({ config }) {
   const evenLoadPerPDU = totalPDUs > 0 ? (targetLoadMW * 1000) / totalPDUs : 0;
   const totalAvailableCapacityMW = ((selectedLineups.length * lineupMaxKW) / 1000).toFixed(2);
   const totalCustomAssignedMW = (customDistribution.reduce((acc, val) => acc + (val || 0), 0) / 1000).toFixed(2);
+
+  // Find overloaded PDUs
+  const overloadedPDUs = [];
+  selectedLineups.forEach((lineup, lineupIndex) => {
+    const pduList = pduUsage[lineup] || [];
+    pduList.forEach((pduIdx, pj) => {
+      const index = selectedLineups
+        .slice(0, lineupIndex)
+        .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
+      const load = customDistribution[index] || 0;
+      if (load > pduMaxKW) {
+        overloadedPDUs.push({
+          name: `PDU-${lineup}-${pduIdx + 1}`,
+          load: load,
+          max: pduMaxKW,
+          excess: load - pduMaxKW
+        });
+      }
+    });
+  });
+
+  // Find overloaded subfeeds
+  const overloadedSubfeeds = [];
+  selectedLineups.forEach((lineup) => {
+    const pduList = pduUsage[lineup] || [];
+    pduList.forEach((pduIdx) => {
+      const pduKey = `PDU-${lineup}-${pduIdx + 1}`;
+      for (let i = 0; i < subfeedsPerPDU; i++) {
+        const key = `${pduKey}-S${i}`;
+        if (breakerSelection[key]) {
+          // Calculate subfeed load based on networking mode
+          let subfeedLoad = 0;
+          if (networkedLoadbanks) {
+            const lineupTotalLoad = (pduUsage[lineup] || []).reduce((total, pdu, pj) => {
+              const lineupIndex = selectedLineups.indexOf(lineup);
+              const index = selectedLineups
+                .slice(0, lineupIndex)
+                .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
+              return total + (customDistribution[index] || 0);
+            }, 0);
+            const lineupSubfeedCount = pduList.reduce((count, pdu) => {
+              const pk = `PDU-${lineup}-${pdu + 1}`;
+              return count + Array.from({ length: subfeedsPerPDU }).filter(
+                (_, j) => breakerSelection[`${pk}-S${j}`]
+              ).length;
+            }, 0);
+            subfeedLoad = lineupSubfeedCount > 0 ? lineupTotalLoad / lineupSubfeedCount : 0;
+          } else {
+            // Per-PDU mode
+            const lineupIndex = selectedLineups.indexOf(lineup);
+            const pj = pduList.indexOf(pduIdx);
+            const index = selectedLineups
+              .slice(0, lineupIndex)
+              .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
+            const pduLoad = customDistribution[index] || 0;
+            const selectedCount = Array.from({ length: subfeedsPerPDU }).filter(
+              (_, j) => breakerSelection[`${pduKey}-S${j}`]
+            ).length;
+            subfeedLoad = selectedCount > 0 ? pduLoad / selectedCount : 0;
+          }
+
+          if (subfeedLoad > maxSubfeedKW) {
+            overloadedSubfeeds.push({
+              name: `${pduKey}-S${i + 1}`,
+              load: subfeedLoad,
+              max: maxSubfeedKW,
+              excess: subfeedLoad - maxSubfeedKW
+            });
+          }
+        }
+      }
+    });
+  });
 
   const handleCustomChange = (index, value) => {
     const updated = [...customDistribution];
@@ -301,10 +375,118 @@ function LoadDistributionPlanner({ config }) {
         />
 
         {unassignedKW > 0 && (
-          <div className="text-red-600 font-bold mt-6">
-            ⚠️ {formatPower(unassignedKW)} could not be assigned due to selected system limits.
+          <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg mb-6">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <p className="font-bold text-red-800">Unassigned Load</p>
+                <p className="text-red-700 text-sm mt-1">
+                  {formatPower(unassignedKW)} could not be assigned. 
+                  <span className="font-semibold"> Suggestions:</span>
+                </p>
+                <ul className="text-red-700 text-sm mt-2 ml-4 list-disc">
+                  <li>Enable more lineups or PDUs</li>
+                  <li>Activate more subfeeds to increase capacity</li>
+                  <li>Reduce target load to {((parseFloat(totalCustomAssignedMW) * 1000 - unassignedKW) / 1000).toFixed(2)} MW</li>
+                </ul>
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Enhanced Validation Messages */}
+        {parseFloat(totalCustomAssignedMW) > parseFloat(totalAvailableCapacityMW) && (
+          <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg mb-6">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">❌</span>
+              <div>
+                <p className="font-bold text-red-800">System Overload</p>
+                <p className="text-red-700 text-sm mt-1">
+                  Load exceeds total system capacity by {((parseFloat(totalCustomAssignedMW) - parseFloat(totalAvailableCapacityMW)) * 1000).toFixed(2)} kW.
+                  <span className="font-semibold"> Required action:</span>
+                </p>
+                <ul className="text-red-700 text-sm mt-2 ml-4 list-disc">
+                  <li>Add {Math.ceil((parseFloat(totalCustomAssignedMW) - parseFloat(totalAvailableCapacityMW)) * 1000 / pduMaxKW)} more PDU(s)</li>
+                  <li>Or reduce load to {totalAvailableCapacityMW} MW or less</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Overloaded PDUs Warning */}
+        {overloadedPDUs.length > 0 && (
+          <div className="p-4 bg-orange-50 border-l-4 border-orange-500 rounded-lg mb-6">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🔌</span>
+              <div>
+                <p className="font-bold text-orange-800">PDU Overload Detected ({overloadedPDUs.length})</p>
+                <p className="text-orange-700 text-sm mt-1">
+                  The following PDUs exceed their rated capacity:
+                </p>
+                <div className="mt-2 space-y-1">
+                  {overloadedPDUs.slice(0, 5).map((pdu) => (
+                    <div key={pdu.name} className="text-sm text-orange-700 ml-4">
+                      • <span className="font-semibold">{pdu.name}</span>: {pdu.load.toFixed(2)} kW / {pdu.max.toFixed(2)} kW 
+                      <span className="text-red-700 font-bold"> (+{pdu.excess.toFixed(2)} kW over)</span>
+                    </div>
+                  ))}
+                  {overloadedPDUs.length > 5 && (
+                    <div className="text-sm text-orange-700 ml-4 italic">
+                      ...and {overloadedPDUs.length - 5} more
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Overloaded Subfeeds Warning */}
+        {overloadedSubfeeds.length > 0 && (
+          <div className="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg mb-6">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚡</span>
+              <div>
+                <p className="font-bold text-yellow-800">Subfeed Breaker Overload ({overloadedSubfeeds.length})</p>
+                <p className="text-yellow-700 text-sm mt-1">
+                  The following subfeeds exceed their breaker rating:
+                </p>
+                <div className="mt-2 space-y-1">
+                  {overloadedSubfeeds.slice(0, 5).map((subfeed) => (
+                    <div key={subfeed.name} className="text-sm text-yellow-700 ml-4">
+                      • <span className="font-semibold">{subfeed.name}</span>: {subfeed.load.toFixed(2)} kW / {subfeed.max.toFixed(2)} kW
+                      <span className="text-red-700 font-bold"> (+{subfeed.excess.toFixed(2)} kW over)</span>
+                    </div>
+                  ))}
+                  {overloadedSubfeeds.length > 5 && (
+                    <div className="text-sm text-yellow-700 ml-4 italic">
+                      ...and {overloadedSubfeeds.length - 5} more
+                    </div>
+                  )}
+                </div>
+                <p className="text-yellow-700 text-sm mt-2 font-semibold">
+                  💡 Tip: {networkedLoadbanks ? 'Activate more subfeeds in the lineup to distribute load' : 'Activate more subfeeds on affected PDUs'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Calculation Summary */}
+        <CalculationSummary
+          totalCustomKW={totalCustomAssignedMW}
+          totalAvailableCapacityMW={totalAvailableCapacityMW}
+          totalDeratedCapacityMW={totalDeratedCapacityMW}
+          totalPDUs={totalPDUs}
+          pduMaxKW={pduMaxKW}
+          pduMainVoltage={pduMainVoltage}
+          pduMainBreakerAmps={pduMainBreakerAmps}
+          subfeedVoltage={subfeedVoltage}
+          subfeedBreakerAmps={subfeedBreakerAmps}
+          selectedLineups={selectedLineups}
+          powerFactor={powerFactor}
+        />
 
         <div className="mt-8 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
