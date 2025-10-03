@@ -307,21 +307,21 @@ function LoadDistributionPlanner({ config }) {
         )}
 
         <div className="mt-8 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
               <span className="text-3xl">📋</span>
               Lineups & PDUs
             </h3>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setSelectedLineups([...initialLineups])}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-2 flex-1 sm:flex-none"
               >
                 <span>✓</span> Select All
               </button>
               <button
                 onClick={() => setSelectedLineups([])}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center gap-2"
+                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-2 flex-1 sm:flex-none"
               >
                 <span>✕</span> Deselect All
               </button>

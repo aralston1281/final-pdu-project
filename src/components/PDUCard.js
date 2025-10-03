@@ -81,7 +81,7 @@ function PDUCard({
 
       <div className="mt-4 pt-4 border-t border-gray-200">
         <label className="font-semibold block mb-2 text-gray-700">Subfeeds:</label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 justify-center">
           {Array.from({ length: subfeedsPerPDU }).map((_, i) => {
             const key = `${pduKey}-S${i}`;
             const isSelected = !!breakerSelection[key];
