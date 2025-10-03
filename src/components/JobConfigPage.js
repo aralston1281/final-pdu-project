@@ -349,7 +349,7 @@ function JobConfigPage() {
             onClick={() => setShowPreview(!showPreview)}
           >
             <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <span className="text-3xl">👁️</span>
+              <span className="text-3xl">📊</span>
               Preview
             </h3>
             <div className="flex items-center gap-3">
