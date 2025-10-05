@@ -418,15 +418,14 @@ function LoadDistributionPlanner({ config }) {
       {/* Sticky Header */}
       <div className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-gray-200">
         <div className="px-3 sm:px-6 py-4">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-            <span className="text-3xl">⚡</span>
-            {config.jobName || 'Load Distribution Planner'}
+          <h1 className="text-2xl font-bold text-gray-800">
+            {config.jobName || 'LoadFlow Pro'}
           </h1>
         </div>
       </div>
 
       {/* Compact Sticky Control Bar */}
-      <div className="sticky top-16 z-40 bg-white border-b-2 border-gray-200 shadow-md py-2">
+      <div className="sticky top-[72px] z-40 bg-white border-b-2 border-gray-200 shadow-md py-2">
         <div className="px-2 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             {/* Load Info */}
