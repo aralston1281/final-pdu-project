@@ -420,7 +420,7 @@ function LoadDistributionPlanner({ config }) {
         <div className="px-3 sm:px-6 py-3">
           <div className="flex items-center gap-3">
             <img 
-              src="/loadflow-pro-logo.png" 
+              src="/loadflow-pro-logo.svg" 
               alt="LoadFlow Pro" 
               className="h-10"
             />

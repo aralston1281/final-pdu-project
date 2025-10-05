@@ -61,7 +61,7 @@ function OneLineDiagram({ config, loadData }) {
               </button>
               <div className="w-px h-6 bg-gray-300"></div>
               <img 
-                src="/loadflow-pro-logo.png" 
+                src="/loadflow-pro-logo.svg" 
                 alt="LoadFlow Pro" 
                 className="h-8"
               />

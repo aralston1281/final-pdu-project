@@ -190,7 +190,7 @@ function JobConfigPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <img 
-            src="/loadflow-pro-logo.png" 
+            src="/loadflow-pro-logo.svg" 
             alt="LoadFlow Pro" 
             className="h-20 mx-auto mb-4"
           />

@@ -1,0 +1,23 @@
+<svg width="600" height="200" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circle Icon Background -->
+  <circle cx="100" cy="100" r="90" fill="#1e5a7d"/>
+  
+  <!-- Electrical Plug Prongs -->
+  <rect x="75" y="60" width="12" height="25" rx="2" fill="white"/>
+  <rect x="113" y="60" width="12" height="25" rx="2" fill="white"/>
+  
+  <!-- Plug Body -->
+  <path d="M 70 85 L 70 110 Q 70 125 85 125 L 115 125 Q 130 125 130 110 L 130 85 Z" fill="white"/>
+  
+  <!-- Arrow -->
+  <g stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 135 100 L 165 100"/>
+    <path d="M 155 90 L 165 100 L 155 110"/>
+  </g>
+  
+  <!-- LoadFlow Text -->
+  <text x="215" y="110" font-family="Inter, -apple-system, sans-serif" font-size="72" font-weight="700" fill="#1e5a7d">LoadFlow</text>
+  
+  <!-- Pro Text -->
+  <text x="215" y="160" font-family="Inter, -apple-system, sans-serif" font-size="52" font-weight="700" fill="#1e5a7d">Pro</text>
+</svg>
