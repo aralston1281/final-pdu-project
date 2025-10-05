@@ -426,7 +426,7 @@ function LoadDistributionPlanner({ config }) {
       </div>
 
       {/* Compact Sticky Control Bar */}
-      <div className="sticky top-[64px] z-40 bg-white border-b-2 border-gray-200 shadow-md py-2">
+      <div className="sticky top-16 z-40 bg-white border-b-2 border-gray-200 shadow-md py-2">
         <div className="px-2 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             {/* Load Info */}
