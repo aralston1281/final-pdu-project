@@ -414,9 +414,9 @@ function LoadDistributionPlanner({ config }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-10 w-full">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-10">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-gray-200 mb-6 w-full">
+      <div className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-gray-200 mb-6">
         <div className="px-3 sm:px-6 py-4">
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
             <span className="text-3xl">⚡</span>
@@ -425,7 +425,7 @@ function LoadDistributionPlanner({ config }) {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6 w-full">
+      <div className="px-3 sm:px-6">
 
         {showTutorial ? (
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
