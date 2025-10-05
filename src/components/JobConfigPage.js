@@ -189,9 +189,11 @@ function JobConfigPage() {
         
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-gray-800 mb-3">
-            LoadFlow Pro
-          </h1>
+          <img 
+            src="/loadflow-pro-logo.png" 
+            alt="LoadFlow Pro" 
+            className="h-20 mx-auto mb-4"
+          />
           <p className="text-gray-600 text-lg">Configure your PDU load distribution system</p>
         </div>
 

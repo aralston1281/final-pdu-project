@@ -417,10 +417,20 @@ function LoadDistributionPlanner({ config }) {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b-2 border-gray-200">
-        <div className="px-3 sm:px-6 py-4">
-          <h1 className="text-2xl font-bold text-gray-800">
-            {config.jobName || 'LoadFlow Pro'}
-          </h1>
+        <div className="px-3 sm:px-6 py-3">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/loadflow-pro-logo.png" 
+              alt="LoadFlow Pro" 
+              className="h-10"
+            />
+            {config.jobName && (
+              <>
+                <div className="w-px h-8 bg-gray-300"></div>
+                <span className="text-lg font-semibold text-gray-700">{config.jobName}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -530,7 +540,7 @@ function LoadDistributionPlanner({ config }) {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6 pb-10 pt-[150px] sm:pt-[140px]">
+      <div className="px-3 sm:px-6 pb-10 pt-[160px] sm:pt-[130px]">
 
           {showTutorial ? (
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">

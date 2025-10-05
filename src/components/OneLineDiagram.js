@@ -60,9 +60,18 @@ function OneLineDiagram({ config, loadData }) {
                 ← Back
               </button>
               <div className="w-px h-6 bg-gray-300"></div>
-              <h1 className="text-2xl font-bold text-gray-800">
-                {config.jobName || 'LoadFlow Pro'} - Single-Line Diagram
-              </h1>
+              <img 
+                src="/loadflow-pro-logo.png" 
+                alt="LoadFlow Pro" 
+                className="h-8"
+              />
+              {config.jobName && (
+                <>
+                  <div className="w-px h-6 bg-gray-300"></div>
+                  <span className="text-lg font-semibold text-gray-700">{config.jobName}</span>
+                </>
+              )}
+              <span className="text-gray-500 text-sm ml-2">- Single-Line Diagram</span>
             </div>
             <button
               onClick={() => window.print()}
