@@ -11,7 +11,8 @@ function CalculationSummary({
   subfeedVoltage,
   subfeedBreakerAmps,
   selectedLineups,
-  powerFactor = 1.0
+  powerFactor = 1.0,
+  config
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -23,22 +24,20 @@ function CalculationSummary({
   const formatPowerValue = (kw) => {
     const mw = kw / 1000;
     if (mw >= 1) {
-      return { value: mw.toFixed(3), unit: 'MW' };
+      return { value: mw.toFixed(1), unit: 'MW' };
     } else {
-      return { value: kw.toFixed(2), unit: 'kW' };
+      return { value: Math.round(kw), unit: 'kW' };
     }
   };
 
-  // Calculate kVA (apparent power)
-  const totalLoadKVA = totalLoadKW / powerFactor;
-  
-  // Calculate current (amps) - using 3-phase formula: I = P / (√3 × V × PF)
-  const totalCurrentAmps = pduMainVoltage > 0 
-    ? totalLoadKW / (Math.sqrt(3) * pduMainVoltage * powerFactor)
+  // Calculate current (amps) - using 3-phase formula: I = P(watts) / (√3 × V × PF)
+  // Convert kW to watts by multiplying by 1000
+  const lineCurrentAmps = pduMainVoltage > 0 
+    ? (totalLoadKW * 1000) / (Math.sqrt(3) * pduMainVoltage * powerFactor)
     : 0;
   
-  // Per-phase current (assuming balanced 3-phase)
-  const perPhaseAmps = totalCurrentAmps / Math.sqrt(3);
+  // Current per PDU (average)
+  const currentPerPDU = totalPDUs > 0 ? lineCurrentAmps / totalPDUs : 0;
   
   // System efficiency
   const efficiency = totalCapacityKW > 0 ? (totalLoadKW / totalCapacityKW) * 100 : 0;
@@ -90,18 +89,6 @@ function CalculationSummary({
                 color={totalLoadKW > totalCapacityKW ? "text-red-600" : "text-blue-600"}
               />
               <StatRow 
-                label="Apparent Power" 
-                value={formatPowerValue(totalLoadKVA).value} 
-                unit={formatPowerValue(totalLoadKVA).unit + 'A'}
-                tooltip="Apparent power (kVA) = Active power (kW) / Power Factor"
-              />
-              <StatRow 
-                label="Power Factor" 
-                value={powerFactor.toFixed(2)} 
-                unit=""
-                color="text-green-600"
-              />
-              <StatRow 
                 label="Total Capacity" 
                 value={totalCapacity.value} 
                 unit={totalCapacity.unit}
@@ -123,22 +110,27 @@ function CalculationSummary({
             </h4>
             <div className="space-y-1">
               <StatRow 
-                label="Total Line Current" 
-                value={totalCurrentAmps.toFixed(2)} 
+                label="Total System Current" 
+                value={lineCurrentAmps.toFixed(2)} 
                 unit="A"
                 color="text-orange-600"
-                tooltip="3-phase line current: I = P / (√3 × V × PF)"
+                tooltip="Total 3-phase line current: I = P / (√3 × V × PF)"
               />
               <StatRow 
-                label="Per-Phase Current" 
-                value={perPhaseAmps.toFixed(2)} 
+                label="Avg Current per PDU" 
+                value={currentPerPDU.toFixed(2)} 
                 unit="A"
-                tooltip="Current per phase in balanced 3-phase system"
+                tooltip="Average current draw per active PDU"
               />
               <StatRow 
                 label="PDU Main Voltage" 
                 value={pduMainVoltage} 
                 unit="V"
+              />
+              <StatRow 
+                label="PDU Main Breaker" 
+                value={pduMainBreakerAmps} 
+                unit="A"
               />
             </div>
           </div>
@@ -211,7 +203,7 @@ function CalculationSummary({
               />
               <StatRow 
                 label="Subfeeds per PDU" 
-                value={8} 
+                value={config.subfeedsPerPDU || 8} 
                 unit="circuits"
               />
             </div>

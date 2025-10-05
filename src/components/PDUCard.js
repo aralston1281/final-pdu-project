@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ProgressBar from '@/components/ProgressBar';
 
 function PDUCard({
@@ -18,7 +18,11 @@ function PDUCard({
   networkedLoadbanks = true,
   lineupTotalLoad = 0,
   lineupSubfeedCount = 0,
+  getDisplayName,
+  updateCustomName,
 }) {
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
   const selectedFeeds = Array.from({ length: subfeedsPerPDU }).filter(
     (_, i) => breakerSelection[`${pduKey}-S${i}`]
   );
@@ -51,9 +55,52 @@ function PDUCard({
       {/* PDU Header */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h4 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-            🔌 {pduKey}
-          </h4>
+          <div className="flex items-center gap-2 flex-1">
+            <span>🔌</span>
+            {isEditingName ? (
+              <input
+                type="text"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onBlur={() => {
+                  if (editedName.trim()) {
+                    updateCustomName(pduKey, editedName);
+                  }
+                  setIsEditingName(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    if (editedName.trim()) {
+                      updateCustomName(pduKey, editedName);
+                    }
+                    setIsEditingName(false);
+                  } else if (e.key === 'Escape') {
+                    setIsEditingName(false);
+                  }
+                }}
+                className="font-bold text-lg text-gray-800 border-2 border-blue-500 rounded px-2 py-1 flex-1"
+                autoFocus
+              />
+            ) : (
+              <>
+                <h4 className="font-bold text-lg text-gray-800">
+                  {getDisplayName ? getDisplayName(pduKey) : pduKey}
+                </h4>
+                {updateCustomName && (
+                  <button
+                    onClick={() => {
+                      setEditedName(getDisplayName ? getDisplayName(pduKey) : pduKey);
+                      setIsEditingName(true);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                    title="Edit PDU name"
+                  >
+                    ✏️
+                  </button>
+                )}
+              </>
+            )}
+          </div>
           <span className={`text-2xl ${statusColor}`}>
             {statusIcon}
           </span>

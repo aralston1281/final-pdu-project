@@ -19,6 +19,9 @@ function LineupSection({
   formatPower,
   lineupMaxKW,
   networkedLoadbanks,
+  defaultLineupMaxKW = 1500,
+  getDisplayName,
+  updateCustomName,
 }) {
   // Calculate total lineup load
   const lineupTotalLoad = pduList.reduce((total, pdu, pj) => {
@@ -38,6 +41,8 @@ function LineupSection({
   }, 0);
 
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
 
   // Check if any PDU in this lineup is overloaded
   const hasOverloadedPDU = pduList.some((pdu, pj) => {
@@ -51,6 +56,7 @@ function LineupSection({
   // Determine overall lineup status
   const isOverloaded = lineupWarnings[lineup] || hasOverloadedPDU;
   const isHighLoad = !isOverloaded && lineupTotalLoad > lineupMaxKW * 0.8;
+  const hasReducedCapacity = lineupMaxKW < defaultLineupMaxKW;
 
   return (
     <div className="bg-white rounded-lg shadow-md border-2 border-gray-200 mb-6 overflow-hidden transition-all hover:shadow-lg">
@@ -65,11 +71,65 @@ function LineupSection({
               {isExpanded ? '▼' : '▶'}
             </span>
             <div>
-              <h3 className="text-xl font-bold text-gray-800">
-                Lineup {lineup}
-              </h3>
+              <div className="flex items-center gap-2">
+                {isEditingName ? (
+                  <input
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    onBlur={() => {
+                      if (editedName.trim()) {
+                        updateCustomName(lineup, editedName);
+                      }
+                      setIsEditingName(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (editedName.trim()) {
+                          updateCustomName(lineup, editedName);
+                        }
+                        setIsEditingName(false);
+                      } else if (e.key === 'Escape') {
+                        setIsEditingName(false);
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xl font-bold text-gray-800 border-2 border-blue-500 rounded px-2 py-1"
+                    autoFocus
+                  />
+                ) : (
+                  <>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      {getDisplayName ? getDisplayName(lineup) : lineup}
+                    </h3>
+                    {updateCustomName && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditedName(getDisplayName ? getDisplayName(lineup) : lineup);
+                          setIsEditingName(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                        title="Edit lineup name"
+                      >
+                        ✏️
+                      </button>
+                    )}
+                  </>
+                )}
+                {hasReducedCapacity && (
+                  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                    <span>🔧</span> Reduced
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-gray-600 mt-1">
                 {pduList.length} PDU{pduList.length !== 1 ? 's' : ''} • {lineupSubfeedCount} Active Subfeeds
+                {hasReducedCapacity && (
+                  <span className="text-orange-600 font-semibold ml-2">
+                    • Max: {formatPower(lineupMaxKW)}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -128,6 +188,8 @@ function LineupSection({
                   networkedLoadbanks={networkedLoadbanks}
                   lineupTotalLoad={lineupTotalLoad}
                   lineupSubfeedCount={lineupSubfeedCount}
+                  getDisplayName={getDisplayName}
+                  updateCustomName={updateCustomName}
                 />
               );
             })}

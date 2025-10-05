@@ -17,6 +17,9 @@ function PlannerHeader({
   totalDeratedCapacityMW,
   unassignedKW,
   autoDistributeEnabled = true,
+  setAutoDistributeEnabled,
+  networkedLoadbanks,
+  setNetworkedLoadbanks,
 }) {
   const utilizationPercent = totalAvailableCapacityMW > 0 
     ? (parseFloat(totalCustomKW) / parseFloat(totalAvailableCapacityMW)) * 100 
@@ -93,6 +96,47 @@ function PlannerHeader({
             min={0}
             step={0.1}
           />
+          
+          {/* Compact Settings Toggles */}
+          <div className="mt-3 space-y-2 text-sm">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoDistributeEnabled}
+                onChange={(e) => setAutoDistributeEnabled(e.target.checked)}
+                className="w-4 h-4 mt-0.5 cursor-pointer flex-shrink-0"
+              />
+              <div>
+                <div className="text-gray-800">
+                  <span className="font-semibold">Auto-Distribute Load</span>
+                </div>
+                <div className="text-xs text-gray-600 mt-0.5">
+                  {autoDistributeEnabled 
+                    ? '✓ Automatically recalculates when you change settings' 
+                    : 'Manual mode - click "Auto Distribute" button to apply'}
+                </div>
+              </div>
+            </label>
+            
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={networkedLoadbanks}
+                onChange={(e) => setNetworkedLoadbanks(e.target.checked)}
+                className="w-4 h-4 mt-0.5 cursor-pointer flex-shrink-0"
+              />
+              <div>
+                <div className="text-gray-800">
+                  <span className="font-semibold">Networked Loadbanks</span>
+                </div>
+                <div className="text-xs text-gray-600 mt-0.5">
+                  {networkedLoadbanks 
+                    ? '✓ Load spreads across all subfeeds in each lineup' 
+                    : 'Load isolated to each PDU\'s own subfeeds only'}
+                </div>
+              </div>
+            </label>
+          </div>
         </div>
 
         {/* Right side: Buttons */}

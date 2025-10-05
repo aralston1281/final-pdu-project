@@ -14,9 +14,12 @@ function JobConfigPage() {
   const [pduMainBreakerAmps, setPduMainBreakerAmps] = useState(1000);
   const [subfeedVoltage, setSubfeedVoltage] = useState(415);
   const [subfeedBreakerAmps, setSubfeedBreakerAmps] = useState(400);
+  const [subfeedsPerPDU, setSubfeedsPerPDU] = useState(8);
   const [saveName, setSaveName] = useState('');
   const [savedNames, setSavedNames] = useState([]);
   const [newSaveName, setNewSaveName] = useState('');
+  const [reducedCapacityKW, setReducedCapacityKW] = useState(400);
+  const [selectedReducedCapacityLineups, setSelectedReducedCapacityLineups] = useState([]);
 
   useEffect(() => {
     fetchConfigNames();
@@ -33,15 +36,36 @@ function JobConfigPage() {
     }
   };
 
-  const parsedPrefixes = rawPrefixInput.toUpperCase().split(',').map(x => x.trim()).filter(x => x);
+  // Parse lineup names - support both simple prefixes and custom full names
+  const rawInput = rawPrefixInput.trim();
+  const inputItems = rawInput.split(/[\n,]/).map(x => x.trim()).filter(x => x);
+  
+  // Detect if using custom names (contains dashes or longer names) or simple prefixes
+  const isCustomMode = inputItems.some(item => item.includes('-') || item.length > 3);
+  
+  let lineupNames;
+  if (isCustomMode) {
+    // Custom mode: use the names as-is
+    lineupNames = inputItems.map(name => name.toUpperCase());
+  } else {
+    // Simple mode: generate from prefixes
+    const parsedPrefixes = inputItems.map(x => x.toUpperCase());
+    lineupNames = parsedPrefixes.flatMap(prefix =>
+      Array.from({ length: lineupsPerPrefix }, (_, i) => `${prefix}${String(i + 1).padStart(2, '0')}`)
+    );
+  }
 
-  const lineupNames = parsedPrefixes.flatMap(prefix =>
-    Array.from({ length: lineupsPerPrefix }, (_, i) => `${prefix}${String(i + 1).padStart(2, '0')}`)
-  );
+  const pduConfigs = lineupNames.map(lineup => {
+    // Strip "UPS-" prefix from lineup name for PDU naming
+    const lineupForPDU = lineup.replace(/^UPS-/i, '');
+    return Array.from({ length: pduPerLineup }, (_, i) => `PDU-${lineupForPDU}-${i + 1}`);
+  });
 
-  const pduConfigs = lineupNames.map(lineup =>
-    Array.from({ length: pduPerLineup }, (_, i) => `PDU-${lineup}-${i + 1}`)
-  );
+  // Create reduced capacity mapping for selected lineups
+  const reducedCapacityLineups = {};
+  selectedReducedCapacityLineups.forEach(lineup => {
+    reducedCapacityLineups[lineup] = reducedCapacityKW;
+  });
 
   const config = {
     jobName,
@@ -52,6 +76,9 @@ function JobConfigPage() {
     pduMainBreakerAmps,
     subfeedVoltage,
     subfeedBreakerAmps,
+    subfeedsPerPDU,
+    reducedCapacityLineups,
+    customNames: {},  // Will be populated when loaded
   };
 
   const handleStart = () => {
@@ -67,17 +94,53 @@ function JobConfigPage() {
       const loaded = await fetch(`/api/load-config?name=${encodeURIComponent(saveName)}`)
         .then(res => res.json());
       if (loaded) {
-        const extractedPrefixes = loaded.lineupNames.map(name => name.replace(/\d+/g, '')).filter((v, i, a) => a.indexOf(v) === i);
-
         setJobName(loaded.jobName || '');
-        setRawPrefixInput(extractedPrefixes.join(',') || 'A');
-        setLineupsPerPrefix(loaded.lineupNames.length / extractedPrefixes.length);
+        
+        // Restore lineup names - just use them directly
+        if (loaded.lineupNames && loaded.lineupNames.length > 0) {
+          // Check if they look like simple generated names (A01, B01, etc.)
+          const firstLineup = loaded.lineupNames[0];
+          const isSimpleMode = /^[A-Z]0\d$/.test(firstLineup);
+          
+          if (isSimpleMode) {
+            // Extract unique prefixes for simple mode
+            const extractedPrefixes = loaded.lineupNames
+              .map(name => name.replace(/\d+/g, ''))
+              .filter((v, i, a) => a.indexOf(v) === i);
+            setRawPrefixInput(extractedPrefixes.join(',') || 'A');
+            setLineupsPerPrefix(Math.max(1, Math.floor(loaded.lineupNames.length / extractedPrefixes.length)));
+          } else {
+            // Custom mode - just list all the lineup names
+            setRawPrefixInput(loaded.lineupNames.join(', '));
+            setLineupsPerPrefix(2); // Default, won't be used in custom mode
+          }
+        } else {
+          setRawPrefixInput('A');
+          setLineupsPerPrefix(2);
+        }
+        
         setPduPerLineup(loaded.pduConfigs?.[0]?.length || 2);
         setLineupMaxKW(loaded.lineupMaxKW || 1200);
         setPduMainVoltage(loaded.pduMainVoltage || 480);
         setPduMainBreakerAmps(loaded.pduMainBreakerAmps || 1000);
         setSubfeedVoltage(loaded.subfeedVoltage || 415);
         setSubfeedBreakerAmps(loaded.subfeedBreakerAmps || 400);
+        setSubfeedsPerPDU(loaded.subfeedsPerPDU || 8);
+        
+        // Load reduced capacity configuration
+        if (loaded.reducedCapacityLineups) {
+          const reducedLineups = Object.keys(loaded.reducedCapacityLineups);
+          setSelectedReducedCapacityLineups(reducedLineups);
+          if (reducedLineups.length > 0) {
+            const firstValue = loaded.reducedCapacityLineups[reducedLineups[0]];
+            setReducedCapacityKW(firstValue || 400);
+          }
+        } else {
+          setSelectedReducedCapacityLineups([]);
+          setReducedCapacityKW(400);
+        }
+        
+        // Custom names are handled automatically when passed to config
       }
     } catch (err) {
       console.error('Failed to load configuration', err);
@@ -243,22 +306,39 @@ function JobConfigPage() {
                 <span className="text-xl">📋</span>
                 Lineup Configuration
               </h4>
+              
+              <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
+                <p className="text-xs text-gray-700 mb-2">
+                  <strong>💡 Two naming modes:</strong>
+                </p>
+                <p className="text-xs text-gray-600 mb-1">
+                  <strong>Simple:</strong> Use prefix + number (A,B,C → A01, A02, B01, B02)
+                </p>
+                <p className="text-xs text-gray-600">
+                  <strong>Custom:</strong> Enter exact lineup names below (UPS-1-1A, UPS-1-1B, etc.)
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+                <div className="col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Lineup Prefix
-                    <span className="text-xs text-gray-500 ml-2">(comma-separated)</span>
+                    Lineup Names
+                    <span className="text-xs text-gray-500 ml-2">(comma-separated or one per line)</span>
                   </label>
-                  <input
-                    className="bg-white border-2 border-gray-300 focus:border-purple-500 text-black px-4 py-3 w-full rounded-lg transition-colors"
-                    placeholder="e.g., A,B,C"
+                  <textarea
+                    className="bg-white border-2 border-gray-300 focus:border-purple-500 text-black px-4 py-3 w-full rounded-lg transition-colors font-mono text-sm"
+                    placeholder="Simple: A,B,C,D,E&#10;or Custom: UPS-1-1A, UPS-1-1B, UPS-1-1C, UPS-1-2A, UPS-1-2B"
                     value={rawPrefixInput}
                     onChange={(e) => setRawPrefixInput(e.target.value)}
+                    rows={3}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Lineups Per Prefix</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Lineups Per Prefix
+                    <span className="text-xs text-gray-500 ml-2">(for simple mode only)</span>
+                  </label>
                   <input
                     type="number"
                     className="bg-white border-2 border-gray-300 focus:border-purple-500 text-black px-4 py-3 w-full rounded-lg transition-colors"
@@ -337,9 +417,143 @@ function JobConfigPage() {
                     onChange={(e) => setSubfeedBreakerAmps(Number(e.target.value))}
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Subfeeds per PDU</label>
+                  <input
+                    type="number"
+                    className="bg-white border-2 border-gray-300 focus:border-orange-500 text-black px-4 py-3 w-full rounded-lg transition-colors"
+                    value={subfeedsPerPDU}
+                    onChange={(e) => setSubfeedsPerPDU(Number(e.target.value))}
+                    min={1}
+                    max={20}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Number of subfeed circuits per PDU (typically 6-12)</p>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Reduced Capacity Configuration */}
+        <div className="bg-white rounded-xl shadow-lg border-2 border-red-100 p-6 mb-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <span className="text-3xl">🔧</span>
+            Reduced Capacity Scenarios
+          </h3>
+          
+          {/* Info Box with Typical Values */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 mb-4">
+            <p className="text-sm text-gray-700 font-semibold mb-2 flex items-center gap-2">
+              <span className="text-lg">💡</span>
+              Typical Commissioning Values:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-700 ml-6">
+              <div>
+                <span className="font-bold">ATS/STS UPS Burn-in:</span>
+                <div className="text-indigo-600 font-semibold">1500-2000 kW</div>
+              </div>
+              <div>
+                <span className="font-bold">Reserve Busway:</span>
+                <div className="text-indigo-600 font-semibold">500-800 kW</div>
+              </div>
+              <div>
+                <span className="font-bold">Reduced Capacity:</span>
+                <div className="text-indigo-600 font-semibold">300-500 kW</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 mt-3 italic">
+              ⚙️ Tip: Adjust lineup capacity based on your commissioning scenario and equipment limitations
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Reduced Capacity Value Input */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Reduced Max Load (kW)
+              </label>
+              <input
+                type="number"
+                className="bg-white border-2 border-gray-300 focus:border-red-500 text-black px-4 py-3 w-full rounded-lg transition-colors"
+                value={reducedCapacityKW}
+                onChange={(e) => setReducedCapacityKW(Number(e.target.value))}
+                placeholder="e.g., 400"
+              />
+              <p className="text-xs text-gray-500 mt-1">Set the reduced capacity limit for selected lineups</p>
+            </div>
+
+            {/* Lineup Selection Counter */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Selected Lineups
+              </label>
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 px-4 py-3 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold text-gray-800">
+                    {selectedReducedCapacityLineups.length}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    of {lineupNames.length} lineups
+                  </span>
+                </div>
+                {selectedReducedCapacityLineups.length > 0 && (
+                  <div className="text-xs text-gray-600 mt-2">
+                    Applied to: {selectedReducedCapacityLineups.join(', ')}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Lineup Selector Grid */}
+          {lineupNames.length > 0 && (
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Select Lineups for Reduced Capacity
+                <span className="text-xs text-gray-500 ml-2">(click to toggle)</span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                {lineupNames.map((lineup) => {
+                  const isSelected = selectedReducedCapacityLineups.includes(lineup);
+                  return (
+                    <button
+                      key={lineup}
+                      onClick={() => {
+                        setSelectedReducedCapacityLineups(prev => 
+                          prev.includes(lineup)
+                            ? prev.filter(l => l !== lineup)
+                            : [...prev, lineup]
+                        );
+                      }}
+                      className={`px-4 py-3 rounded-lg font-semibold text-sm transition-all border-2 ${
+                        isSelected
+                          ? 'bg-red-500 text-white border-red-600 hover:bg-red-600 shadow-md'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-red-400 hover:bg-red-50'
+                      }`}
+                    >
+                      {lineup}
+                      {isSelected && <span className="ml-1">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => setSelectedReducedCapacityLineups([...lineupNames])}
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-2"
+                >
+                  <span>✓</span> Select All
+                </button>
+                <button
+                  onClick={() => setSelectedReducedCapacityLineups([])}
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-2"
+                >
+                  <span>✕</span> Clear All
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Lineup and PDU Preview */}
@@ -353,6 +567,11 @@ function JobConfigPage() {
               Preview
             </h3>
             <div className="flex items-center gap-3">
+              {isCustomMode && (
+                <span className="text-xs bg-purple-500 text-white px-2 py-1 rounded-full font-bold">
+                  Custom Names
+                </span>
+              )}
               <span className="text-sm font-semibold text-gray-600">
                 {lineupNames.length} Lineups • {lineupNames.length * pduPerLineup} PDUs
               </span>

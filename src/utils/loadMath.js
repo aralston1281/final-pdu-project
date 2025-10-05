@@ -14,34 +14,45 @@ export function autoDistributeLoad({
   pduMaxKW,
   targetLoadMW,
   lineupMaxKW,
+  reducedCapacityLineups = {},
 }) {
-  const pduList = selectedLineups.flatMap((lineup) =>
-    (pduUsage[lineup] || []).map((pduIndex) => `PDU-${lineup}-${pduIndex + 1}`)
+  // Build PDU list with lineup association
+  const pduListWithLineup = selectedLineups.flatMap((lineup) =>
+    (pduUsage[lineup] || []).map((pduIndex) => {
+      // Strip "UPS-" prefix if present for PDU naming
+      const lineupForPDU = lineup.replace(/^UPS-/i, '');
+      return {
+        pduKey: `PDU-${lineupForPDU}-${pduIndex + 1}`,
+        lineup: lineup  // Keep original lineup name for tracking
+      };
+    })
   );
 
-  const distributed = Array(pduList.length).fill(0);
+  const distributed = Array(pduListWithLineup.length).fill(0);
   let remainingLoad = targetLoadMW * 1000;
   const lineupUsedKW = {};
 
-  const pduCapacities = pduList.map((pduKey) => {
+  // Helper to get lineup-specific max
+  const getLineupMaxKW = (lineup) => {
+    return reducedCapacityLineups[lineup] || lineupMaxKW;
+  };
+
+  const pduCapacities = pduListWithLineup.map(({ pduKey, lineup }) => {
     const activeFeeds = Array.from({ length: subfeedsPerPDU })
       .map((_, i) => `${pduKey}-S${i}`)
       .filter((k) => breakerSelection[k]);
     const feedCount = activeFeeds.length;
     const cap = feedCount > 0 ? feedCount * maxSubfeedKW : pduMaxKW;
-    const lineup = pduKey.split('-')[1];
     if (!lineupUsedKW[lineup]) lineupUsedKW[lineup] = 0;
     return cap;
   });
 
-  const maxPerLineup = lineupMaxKW ; // Always derate Lineup to 80%
-
   while (remainingLoad > 0) {
     let anyAllocated = false;
     for (let i = 0; i < distributed.length; i++) {
-      const pduKey = pduList[i];
+      const { lineup } = pduListWithLineup[i];
       const cap = pduCapacities[i];
-      const lineup = pduKey.split('-')[1];
+      const maxPerLineup = getLineupMaxKW(lineup);
       const current = distributed[i];
       const totalLineupLoad = lineupUsedKW[lineup] || 0;
       if (current >= cap || totalLineupLoad >= maxPerLineup) continue;
@@ -58,6 +69,7 @@ export function autoDistributeLoad({
 
   const warnings = {};
   Object.keys(lineupUsedKW).forEach((lineup) => {
+    const maxPerLineup = getLineupMaxKW(lineup);
     if (lineupUsedKW[lineup] >= maxPerLineup) warnings[lineup] = true;
   });
 
