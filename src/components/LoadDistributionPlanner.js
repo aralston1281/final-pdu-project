@@ -425,41 +425,9 @@ function LoadDistributionPlanner({ config }) {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6">
-
-        {showTutorial ? (
-          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
-            <button
-              onClick={() => setShowTutorial(false)}
-              className="absolute top-2 right-2 text-yellow-800 hover:text-yellow-600 font-bold"
-              title="Collapse tutorial"
-            >
-              ×
-            </button>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li><strong>Enter Required Load:</strong> Input target load (MW) you will need.</li>
-              <li><strong>Adjust Load:</strong> Manually input kW or use &quot;Auto Distribute&quot; to spread it evenly.</li>
-              <li><strong>Select Lineups:</strong> Use the blue/red buttons to toggle lineups.</li>
-              <li><strong>Select PDUs:</strong> Use the PDU buttons to enable/disable specific PDUs.</li>
-              <li><strong>Adjust Subfeeds:</strong> Check or uncheck the subfeed breakers under each PDU.</li>
-              <li><strong>Review Warnings:</strong> Watch for overload or capacity alerts in red/yellow.</li>
-              <li><strong>Reset:</strong> Click &quot;Reset&quot; to clear and start over.</li>
-            </ul>
-          </div>
-        ) : (
-          <div className="mb-6">
-            <button
-              onClick={() => setShowTutorial(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-half"
-            >
-              Show Help
-            </button>
-          </div>
-        )}
-
-
-        {/* Compact Sticky Control Bar */}
-        <div className="sticky top-16 z-40 bg-white border-b-2 border-gray-200 shadow-md -mx-3 sm:-mx-6 px-3 sm:px-6 py-3 mb-6">
+      {/* Compact Sticky Control Bar */}
+      <div className="sticky top-16 z-40 bg-white border-b-2 border-gray-200 shadow-md py-3 mb-6">
+        <div className="px-3 sm:px-6">
           <div className="flex items-center justify-between gap-4">
             {/* Load Info */}
             <div className="flex items-center gap-4">
@@ -566,6 +534,39 @@ function LoadDistributionPlanner({ config }) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="px-3 sm:px-6">
+
+        {showTutorial ? (
+          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
+            <button
+              onClick={() => setShowTutorial(false)}
+              className="absolute top-2 right-2 text-yellow-800 hover:text-yellow-600 font-bold"
+              title="Collapse tutorial"
+            >
+              ×
+            </button>
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li><strong>Enter Required Load:</strong> Input target load (MW) you will need.</li>
+              <li><strong>Adjust Load:</strong> Manually input kW or use &quot;Auto Distribute&quot; to spread it evenly.</li>
+              <li><strong>Select Lineups:</strong> Use the blue/red buttons to toggle lineups.</li>
+              <li><strong>Select PDUs:</strong> Use the PDU buttons to enable/disable specific PDUs.</li>
+              <li><strong>Adjust Subfeeds:</strong> Check or uncheck the subfeed breakers under each PDU.</li>
+              <li><strong>Review Warnings:</strong> Watch for overload or capacity alerts in red/yellow.</li>
+              <li><strong>Reset:</strong> Click &quot;Reset&quot; to clear and start over.</li>
+            </ul>
+          </div>
+        ) : (
+          <div className="mb-6">
+            <button
+              onClick={() => setShowTutorial(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded w-half"
+            >
+              Show Help
+            </button>
+          </div>
+        )}
 
         {/* Full Controls Section (Non-sticky) */}
         <PlannerHeader
