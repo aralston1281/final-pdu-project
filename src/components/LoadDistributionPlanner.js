@@ -414,7 +414,7 @@ function LoadDistributionPlanner({ config }) {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Sticky Header */}
       <div className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-gray-200">
         <div className="px-3 sm:px-6 py-4">
@@ -531,8 +531,7 @@ function LoadDistributionPlanner({ config }) {
         </div>
       </div>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="px-3 sm:px-6 pb-10">
+      <div className="px-3 sm:px-6 pb-10">
 
           {showTutorial ? (
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
@@ -882,7 +881,6 @@ function LoadDistributionPlanner({ config }) {
             updateCustomName={updateCustomName}
           />
         ))}
-        </div>
       </div>
 
       {/* Save Dialog Modal */}
@@ -922,7 +920,7 @@ function LoadDistributionPlanner({ config }) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
