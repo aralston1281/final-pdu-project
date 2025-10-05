@@ -415,8 +415,8 @@ function LoadDistributionPlanner({ config }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-gray-200">
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b-2 border-gray-200">
         <div className="px-3 sm:px-6 py-4">
           <h1 className="text-2xl font-bold text-gray-800">
             {config.jobName || 'LoadFlow Pro'}
@@ -424,8 +424,8 @@ function LoadDistributionPlanner({ config }) {
         </div>
       </div>
 
-      {/* Compact Sticky Control Bar */}
-      <div className="sticky top-[72px] z-40 bg-white border-b-2 border-gray-200 shadow-md py-2">
+      {/* Fixed Control Bar */}
+      <div className="fixed top-[72px] left-0 right-0 z-40 bg-white border-b-2 border-gray-200 shadow-md py-2">
         <div className="px-2 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             {/* Load Info */}
@@ -530,7 +530,7 @@ function LoadDistributionPlanner({ config }) {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6 pb-10">
+      <div className="px-3 sm:px-6 pb-10 pt-[140px]">
 
           {showTutorial ? (
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
