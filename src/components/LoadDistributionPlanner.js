@@ -530,7 +530,7 @@ function LoadDistributionPlanner({ config }) {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6 pb-10 pt-[140px]">
+      <div className="px-3 sm:px-6 pb-10 pt-[150px] sm:pt-[140px]">
 
           {showTutorial ? (
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
