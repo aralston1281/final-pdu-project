@@ -414,9 +414,9 @@ function LoadDistributionPlanner({ config }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-10">
+    <>
       {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-gray-200 mb-6">
+      <div className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-gray-200">
         <div className="px-3 sm:px-6 py-4">
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
             <span className="text-3xl">⚡</span>
@@ -426,7 +426,7 @@ function LoadDistributionPlanner({ config }) {
       </div>
 
       {/* Compact Sticky Control Bar */}
-      <div className="sticky top-[64px] z-40 bg-white border-b-2 border-gray-200 shadow-md py-2 mb-6">
+      <div className="sticky top-[64px] z-40 bg-white border-b-2 border-gray-200 shadow-md py-2">
         <div className="px-2 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             {/* Load Info */}
@@ -531,9 +531,10 @@ function LoadDistributionPlanner({ config }) {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="px-3 sm:px-6 pb-10">
 
-        {showTutorial ? (
+          {showTutorial ? (
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
             <button
               onClick={() => setShowTutorial(false)}
@@ -881,6 +882,7 @@ function LoadDistributionPlanner({ config }) {
             updateCustomName={updateCustomName}
           />
         ))}
+        </div>
       </div>
 
       {/* Save Dialog Modal */}
@@ -920,7 +922,7 @@ function LoadDistributionPlanner({ config }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
