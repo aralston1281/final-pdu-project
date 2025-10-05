@@ -426,47 +426,42 @@ function LoadDistributionPlanner({ config }) {
       </div>
 
       {/* Compact Sticky Control Bar */}
-      <div className="sticky top-16 z-40 bg-white border-b-2 border-gray-200 shadow-md py-3 mb-6">
-        <div className="px-3 sm:px-6">
-          <div className="flex items-center justify-between gap-4">
+      <div className="sticky top-[64px] z-40 bg-white border-b-2 border-gray-200 shadow-md py-2 mb-6">
+        <div className="px-2 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             {/* Load Info */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-600">Target:</span>
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm font-semibold text-gray-600">Target:</span>
                 <input
                   type="number"
                   value={targetLoadMW}
                   onChange={(e) => setTargetLoadMW(Number(e.target.value))}
-                  className="bg-white border-2 border-gray-300 focus:border-blue-500 px-3 py-1.5 rounded w-20 text-sm font-bold transition-colors"
+                  className="bg-white border-2 border-gray-300 focus:border-blue-500 px-2 py-1 rounded w-16 text-sm font-bold transition-colors"
                   min={0}
                   step={0.1}
                 />
-                <span className="text-sm font-semibold text-gray-600">MW</span>
+                <span className="text-xs sm:text-sm font-semibold text-gray-600">MW</span>
               </div>
               
-              <div className="hidden sm:block h-8 w-px bg-gray-300"></div>
-              
-              <div className="hidden sm:flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-600">Assigned:</span>
-                <span className="text-lg font-bold text-blue-600">{totalCustomAssignedMW} MW</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm font-semibold text-gray-600">Load:</span>
+                <span className="text-sm sm:text-lg font-bold text-blue-600">{totalCustomAssignedMW} MW</span>
               </div>
               
-              <div className="hidden md:block h-8 w-px bg-gray-300"></div>
-              
-              <div className="hidden md:flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-600">Capacity:</span>
+              <div className="hidden lg:flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-600">Cap:</span>
                 <span className="text-sm font-bold text-gray-700">{totalAvailableCapacityMW} MW</span>
-                <span className="text-xs text-gray-500">({(parseFloat(totalCustomAssignedMW) / parseFloat(totalAvailableCapacityMW) * 100).toFixed(0)}%)</span>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => setShowSaveDialog(true)}
-                className="text-sm font-semibold px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-all"
+                className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-all"
               >
-                💾 Save
+                💾
               </button>
               <button
                 onClick={() => {
@@ -510,14 +505,14 @@ function LoadDistributionPlanner({ config }) {
                     },
                   });
                 }}
-                className="text-sm font-semibold px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all"
+                className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all"
               >
-                📊 Diagram
+                📊
               </button>
               <button
                 onClick={autoDistribute}
                 disabled={autoDistributeEnabled}
-                className={`text-sm font-semibold px-4 py-2 rounded-lg transition-all ${
+                className={`text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all ${
                   autoDistributeEnabled 
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -527,7 +522,7 @@ function LoadDistributionPlanner({ config }) {
               </button>
               <button
                 onClick={resetAll}
-                className="text-sm font-semibold px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white transition-all"
+                className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white transition-all"
               >
                 Reset
               </button>
