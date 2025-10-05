@@ -1,10 +1,11 @@
 // src/components/OneLineDiagram.js
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 
 function OneLineDiagram({ config, loadData }) {
   const router = useRouter();
+  const [showAbout, setShowAbout] = useState(false);
 
   const lineupMaxKW = config.lineupMaxKW || 1500;
   const reducedCapacityLineups = config.reducedCapacityLineups || {};
@@ -73,12 +74,21 @@ function OneLineDiagram({ config, loadData }) {
               )}
               <span className="text-gray-500 text-sm ml-2">- Single-Line Diagram</span>
             </div>
-            <button
-              onClick={() => window.print()}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all"
-            >
-              🖨️ Print
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="text-xs sm:text-sm text-gray-600 hidden sm:inline">by Andrew Ralston</span>
+              <button
+                onClick={() => setShowAbout(true)}
+                className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors px-2 py-1 rounded hover:bg-blue-50"
+              >
+                ℹ️ About
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg transition-all text-sm"
+              >
+                🖨️ Print
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -281,7 +291,51 @@ function OneLineDiagram({ config, loadData }) {
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-12 pt-6 border-t border-gray-300 text-center text-sm text-gray-600">
+          <p>© 2025 Andrew Ralston | LoadFlow Pro v1.0</p>
+        </footer>
       </div>
+
+      {/* About Modal */}
+      {showAbout && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAbout(false)}>
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <img 
+                src="/loadflow-pro-logo.svg" 
+                alt="LoadFlow Pro" 
+                className="h-16 mx-auto mb-4"
+              />
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">LoadFlow Pro</h2>
+              <p className="text-sm text-gray-600">Version 1.0</p>
+            </div>
+            <div className="mb-6">
+              <p className="text-gray-700 mb-4">
+                Professional Load Planning for Data Center Commissioning
+              </p>
+              <p className="text-sm text-gray-600">
+                LoadFlow Pro streamlines PDU load distribution planning, commissioning workflows, and capacity management for data center electrical systems.
+              </p>
+            </div>
+            <div className="border-t pt-4 mb-4">
+              <p className="text-sm text-gray-700">
+                <strong>Developed by:</strong> Andrew Ralston
+              </p>
+              <p className="text-sm text-gray-700 mt-1">
+                <strong>Copyright:</strong> © 2025 Andrew Ralston
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAbout(false)}
+              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

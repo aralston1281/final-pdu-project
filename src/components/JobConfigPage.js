@@ -20,6 +20,7 @@ function JobConfigPage() {
   const [newSaveName, setNewSaveName] = useState('');
   const [reducedCapacityKW, setReducedCapacityKW] = useState(400);
   const [selectedReducedCapacityLineups, setSelectedReducedCapacityLineups] = useState([]);
+  const [showAbout, setShowAbout] = useState(false);
 
   useEffect(() => {
     fetchConfigNames();
@@ -188,13 +189,26 @@ function JobConfigPage() {
       <div className="max-w-4xl mx-auto">
         
         {/* Header */}
-        <div className="text-center mb-8">
-          <img 
-            src="/loadflow-pro-logo.svg" 
-            alt="LoadFlow Pro" 
-            className="h-20 mx-auto mb-4"
-          />
-          <p className="text-gray-600 text-lg">Professional Load Planning for Data Center Commissioning</p>
+        <div className="mb-8">
+          <div className="flex justify-end mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">by Andrew Ralston</span>
+              <button
+                onClick={() => setShowAbout(true)}
+                className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors px-3 py-1.5 rounded hover:bg-blue-50"
+              >
+                ℹ️ About
+              </button>
+            </div>
+          </div>
+          <div className="text-center">
+            <img 
+              src="/loadflow-pro-logo.svg" 
+              alt="LoadFlow Pro" 
+              className="h-20 mx-auto mb-4"
+            />
+            <p className="text-gray-600 text-lg">Professional Load Planning for Data Center Commissioning</p>
+          </div>
         </div>
 
         {/* Save / Load Section */}
@@ -614,7 +628,51 @@ function JobConfigPage() {
           <span className="text-3xl">⚡</span>
         </button>
 
+        {/* Footer */}
+        <footer className="mt-12 pt-6 border-t border-gray-300 text-center text-sm text-gray-600">
+          <p>© 2025 Andrew Ralston | LoadFlow Pro v1.0</p>
+        </footer>
+
       </div>
+
+      {/* About Modal */}
+      {showAbout && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAbout(false)}>
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <img 
+                src="/loadflow-pro-logo.svg" 
+                alt="LoadFlow Pro" 
+                className="h-16 mx-auto mb-4"
+              />
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">LoadFlow Pro</h2>
+              <p className="text-sm text-gray-600">Version 1.0</p>
+            </div>
+            <div className="mb-6">
+              <p className="text-gray-700 mb-4">
+                Professional Load Planning for Data Center Commissioning
+              </p>
+              <p className="text-sm text-gray-600">
+                LoadFlow Pro streamlines PDU load distribution planning, commissioning workflows, and capacity management for data center electrical systems.
+              </p>
+            </div>
+            <div className="border-t pt-4 mb-4">
+              <p className="text-sm text-gray-700">
+                <strong>Developed by:</strong> Andrew Ralston
+              </p>
+              <p className="text-sm text-gray-700 mt-1">
+                <strong>Copyright:</strong> © 2025 Andrew Ralston
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAbout(false)}
+              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
