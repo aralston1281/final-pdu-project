@@ -194,7 +194,7 @@ function JobConfigPage() {
             alt="LoadFlow Pro" 
             className="h-20 mx-auto mb-4"
           />
-          <p className="text-gray-600 text-lg">Configure your PDU load distribution system</p>
+          <p className="text-gray-600 text-lg">Professional Load Planning for Data Center Commissioning</p>
         </div>
 
         {/* Save / Load Section */}
