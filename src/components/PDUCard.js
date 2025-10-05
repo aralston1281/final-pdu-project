@@ -56,7 +56,6 @@ function PDUCard({
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 flex-1">
-            <span>🔌</span>
             {isEditingName ? (
               <input
                 type="text"
@@ -95,7 +94,7 @@ function PDUCard({
                     className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
                     title="Edit PDU name"
                   >
-                    ✏️
+                    Edit
                   </button>
                 )}
               </>

@@ -77,8 +77,7 @@ function CalculationSummary({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Power Summary */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-lg border-2 border-blue-200">
-            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="text-xl">⚡</span>
+            <h4 className="font-bold text-gray-800 mb-4">
               Power Summary
             </h4>
             <div className="space-y-1">
@@ -104,8 +103,7 @@ function CalculationSummary({
 
           {/* Current & Amperage */}
           <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-lg border-2 border-yellow-200">
-            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="text-xl">🔌</span>
+            <h4 className="font-bold text-gray-800 mb-4">
               Current Analysis
             </h4>
             <div className="space-y-1">
@@ -137,8 +135,7 @@ function CalculationSummary({
 
         {/* System Metrics */}
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-lg border-2 border-purple-200">
-          <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-xl">📊</span>
+          <h4 className="font-bold text-gray-800 mb-4">
             System Metrics
           </h4>
           <div className="space-y-1">
@@ -180,8 +177,7 @@ function CalculationSummary({
 
           {/* Subfeed Info */}
           <div className="bg-gradient-to-br from-green-50 to-teal-50 p-5 rounded-lg border-2 border-green-200">
-            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="text-xl">🔧</span>
+            <h4 className="font-bold text-gray-800 mb-4">
               Subfeed Specifications
             </h4>
             <div className="space-y-1">

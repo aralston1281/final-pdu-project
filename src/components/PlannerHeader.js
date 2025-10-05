@@ -42,28 +42,24 @@ function PlannerHeader({
           title="Total Capacity"
           value={`${totalAvailableCapacityMW} MW`}
           subtitle={`Derated: ${totalDeratedCapacityMW.toFixed(2)} MW (80%)`}
-          icon="⚡"
           color="blue"
         />
         <StatCard
           title="Current Load"
           value={`${totalCustomKW} MW`}
           subtitle={`${totalPDUs} PDUs Active`}
-          icon="📊"
           color={capacityColor}
         />
         <StatCard
           title="Utilization"
           value={`${utilizationPercent.toFixed(1)}%`}
           subtitle={`Derated: ${derateUtilizationPercent.toFixed(1)}%`}
-          icon="📈"
           color={capacityColor}
         />
         <StatCard
           title="Per PDU Avg"
           value={`${evenLoadPerPDU.toFixed(1)} kW`}
           subtitle={`Max: ${pduMaxKW.toFixed(0)} kW`}
-          icon="🔌"
           color={evenLoadPerPDU > pduMaxKW ? 'red' : 'green'}
         />
       </div>

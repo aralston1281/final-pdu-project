@@ -482,7 +482,7 @@ function LoadDistributionPlanner({ config }) {
                 onClick={() => setShowSaveDialog(true)}
                 className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-all"
               >
-                💾
+                Save
               </button>
               <button
                 onClick={() => {
@@ -528,7 +528,7 @@ function LoadDistributionPlanner({ config }) {
                 }}
                 className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all"
               >
-                📊
+                Diagram
               </button>
               <button
                 onClick={autoDistribute}
@@ -554,7 +554,7 @@ function LoadDistributionPlanner({ config }) {
 
       <div className="px-3 sm:px-6 pb-10 pt-[160px] sm:pt-[130px]">
 
-          {showTutorial ? (
+        {showTutorial ? (
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg mb-6 text-sm relative">
             <button
               onClick={() => setShowTutorial(false)}
@@ -606,7 +606,6 @@ function LoadDistributionPlanner({ config }) {
         {unassignedKW > 0 && (
           <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg mb-6">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⚠️</span>
               <div>
                 <p className="font-bold text-red-800">Unassigned Load</p>
                 <p className="text-red-700 text-sm mt-1">
@@ -627,7 +626,6 @@ function LoadDistributionPlanner({ config }) {
         {parseFloat(totalCustomAssignedMW) > parseFloat(totalAvailableCapacityMW) && (
           <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg mb-6">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">❌</span>
               <div>
                 <p className="font-bold text-red-800">System Overload</p>
                 <p className="text-red-700 text-sm mt-1">
@@ -647,7 +645,6 @@ function LoadDistributionPlanner({ config }) {
         {overloadedPDUs.length > 0 && (
           <div className="p-4 bg-orange-50 border-l-4 border-orange-500 rounded-lg mb-6">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🔌</span>
               <div>
                 <p className="font-bold text-orange-800">PDU Overload Detected ({overloadedPDUs.length})</p>
                 <p className="text-orange-700 text-sm mt-1">
@@ -675,7 +672,6 @@ function LoadDistributionPlanner({ config }) {
         {overloadedSubfeeds.length > 0 && (
           <div className="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg mb-6">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⚡</span>
               <div>
                 <p className="font-bold text-yellow-800">Subfeed Breaker Overload ({overloadedSubfeeds.length})</p>
                 <p className="text-yellow-700 text-sm mt-1">
@@ -695,7 +691,7 @@ function LoadDistributionPlanner({ config }) {
                   )}
                 </div>
                 <p className="text-yellow-700 text-sm mt-2 font-semibold">
-                  💡 Tip: {networkedLoadbanks ? 'Activate more subfeeds in the lineup to distribute load' : 'Activate more subfeeds on affected PDUs'}
+                  Tip: {networkedLoadbanks ? 'Activate more subfeeds in the lineup to distribute load' : 'Activate more subfeeds on affected PDUs'}
                 </p>
               </div>
             </div>
@@ -709,8 +705,7 @@ function LoadDistributionPlanner({ config }) {
             onClick={() => setShowCommissioningPresets(!showCommissioningPresets)}
           >
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <span className="text-xl">🔧</span>
+              <h3 className="text-lg font-bold text-gray-800">
                 Commissioning Test Presets
               </h3>
               <span className="text-xs bg-yellow-500 text-white px-2 py-1 rounded-full font-bold">
@@ -745,7 +740,6 @@ function LoadDistributionPlanner({ config }) {
                     disabled
                     className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold px-3 py-2 rounded-lg cursor-not-allowed opacity-70"
                   >
-                    <div className="text-base mb-0.5">⚡</div>
                     <div className="text-xs">PDU Main Breaker</div>
                     <div className="text-xs opacity-80 mt-0.5">100% Each PDU</div>
                   </button>
@@ -759,7 +753,6 @@ function LoadDistributionPlanner({ config }) {
                     disabled
                     className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold px-3 py-2 rounded-lg cursor-not-allowed opacity-70"
                   >
-                    <div className="text-base mb-0.5">⚡⚡</div>
                     <div className="text-xs">Efficient Complete Burn In</div>
                     <div className="text-xs opacity-80 mt-0.5">100% Min PDUs+Subfeeds</div>
                   </button>
@@ -784,7 +777,7 @@ function LoadDistributionPlanner({ config }) {
               </div>
               
               <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-gray-700">
-                <strong>💡 Efficient Complete Burn In</strong> will auto-select minimum PDUs needed to reach 100% lineup capacity. Tests max equipment in minimum burn cycles!
+                <strong>Efficient Complete Burn In</strong> will auto-select minimum PDUs needed to reach 100% lineup capacity. Tests max equipment in minimum burn cycles!
               </div>
             </div>
           )}
@@ -814,8 +807,8 @@ function LoadDistributionPlanner({ config }) {
             <div className="flex items-center gap-3">
               <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <span className="text-2xl">📋</span>
-                Lineups & PDUs
-              </h3>
+              Lineups & PDUs
+            </h3>
               <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full font-semibold">
                 {selectedLineups.length}/{initialLineups.length} lineups • {totalPDUs} PDUs
               </span>
@@ -826,54 +819,54 @@ function LoadDistributionPlanner({ config }) {
           {showLineupSelector && (
             <div className="p-6 bg-white border-t border-gray-200">
               <div className="flex gap-2 w-full sm:w-auto mb-4">
-                <button
-                  onClick={() => setSelectedLineups([...initialLineups])}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-2 flex-1 sm:flex-none"
-                >
-                  <span>✓</span> Select All
-                </button>
-                <button
-                  onClick={() => setSelectedLineups([])}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-2 flex-1 sm:flex-none"
-                >
-                  <span>✕</span> Deselect All
-                </button>
-              </div>
+              <button
+                onClick={() => setSelectedLineups([...initialLineups])}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-2 flex-1 sm:flex-none"
+              >
+                <span>✓</span> Select All
+              </button>
+              <button
+                onClick={() => setSelectedLineups([])}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-2 flex-1 sm:flex-none"
+              >
+                <span>✕</span> Deselect All
+              </button>
+          </div>
 
-              <div className="flex flex-col gap-4">
-                {initialLineups.map((lineup) => {
-                  const lineupIdx = initialLineups.indexOf(lineup);
-                  const pduArray = config?.pduConfigs?.[lineupIdx] || [];
+          <div className="flex flex-col gap-4">
+            {initialLineups.map((lineup) => {
+              const lineupIdx = initialLineups.indexOf(lineup);
+              const pduArray = config?.pduConfigs?.[lineupIdx] || [];
 
-                  return (
-                    <div key={lineup} className="flex items-center gap-4">
-                      <button
-                        onClick={() => toggleLineup(lineup)}
-                        className={`px-3 py-2 rounded border ${selectedLineups.includes(lineup) ? 'bg-blue-600 text-white' : 'bg-red-500 text-white'}`}
-                      >
-                        {lineup}
-                      </button>
+              return (
+                <div key={lineup} className="flex items-center gap-4">
+                  <button
+                    onClick={() => toggleLineup(lineup)}
+                    className={`px-3 py-2 rounded border ${selectedLineups.includes(lineup) ? 'bg-blue-600 text-white' : 'bg-red-500 text-white'}`}
+                  >
+                    {lineup}
+                  </button>
 
-                      {selectedLineups.includes(lineup) && (
-                        <div className="flex gap-2 flex-wrap">
-                          {pduArray.map((_, idx) => {
-                            const active = pduUsage[lineup]?.includes(idx);
-                            return (
-                              <button
-                                key={idx}
-                                onClick={() => togglePdu(lineup, idx)}
-                                className={`px-2 py-1 rounded border ${active ? 'bg-green-600 text-white' : 'bg-red-500 text-white'}`}
-                              >
-                                PDU-{lineup}-{idx + 1}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                  {selectedLineups.includes(lineup) && (
+                    <div className="flex gap-2 flex-wrap">
+                      {pduArray.map((_, idx) => {
+                        const active = pduUsage[lineup]?.includes(idx);
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => togglePdu(lineup, idx)}
+                            className={`px-2 py-1 rounded border ${active ? 'bg-green-600 text-white' : 'bg-red-500 text-white'}`}
+                          >
+                            PDU-{lineup}-{idx + 1}
+                          </button>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
             </div>
           )}
         </div>
@@ -979,7 +972,7 @@ function LoadDistributionPlanner({ config }) {
                 onClick={handleSaveConfig}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"
               >
-                💾 Save
+                Save Configuration
               </button>
             </div>
           </div>

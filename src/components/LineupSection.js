@@ -112,14 +112,14 @@ function LineupSection({
                         className="text-blue-600 hover:text-blue-800 transition-colors"
                         title="Edit lineup name"
                       >
-                        ✏️
+                        Edit
                       </button>
                     )}
                   </>
                 )}
                 {hasReducedCapacity && (
-                  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                    <span>🔧</span> Reduced
+                  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    Reduced
                   </span>
                 )}
               </div>

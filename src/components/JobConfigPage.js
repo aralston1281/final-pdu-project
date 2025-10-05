@@ -213,8 +213,7 @@ function JobConfigPage() {
 
         {/* Save / Load Section */}
         <div className="bg-white rounded-xl shadow-lg border-2 border-blue-100 p-6 mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-3xl">💾</span>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Manage Projects
           </h3>
 
@@ -256,7 +255,7 @@ function JobConfigPage() {
                   onClick={handleSave}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-md flex items-center gap-2"
                 >
-                  <span>💾</span> Save
+                  Save
                 </button>
               </div>
             </div>
@@ -292,8 +291,7 @@ function JobConfigPage() {
 
         {/* Manual Setup Section */}
         <div className="bg-white rounded-xl shadow-lg border-2 border-purple-100 p-6 mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span className="text-3xl">⚙️</span>
+          <h3 className="text-2xl font-bold text-gray-800 mb-6">
             Configuration Settings
           </h3>
 
@@ -324,7 +322,7 @@ function JobConfigPage() {
               
               <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
                 <p className="text-xs text-gray-700 mb-2">
-                  <strong>💡 Two naming modes:</strong>
+                  <strong>Two naming modes:</strong>
                 </p>
                 <p className="text-xs text-gray-600 mb-1">
                   <strong>Simple:</strong> Use prefix + number (A,B,C → A01, A02, B01, B02)
@@ -388,8 +386,7 @@ function JobConfigPage() {
 
             {/* Electrical Configuration */}
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-5 rounded-lg border border-yellow-200">
-              <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="text-xl">⚡</span>
+              <h4 className="font-bold text-gray-800 mb-4">
                 Electrical Specifications
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -452,15 +449,13 @@ function JobConfigPage() {
 
         {/* Reduced Capacity Configuration */}
         <div className="bg-white rounded-xl shadow-lg border-2 border-red-100 p-6 mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-3xl">🔧</span>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Reduced Capacity Scenarios
           </h3>
           
           {/* Info Box with Typical Values */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 mb-4">
-            <p className="text-sm text-gray-700 font-semibold mb-2 flex items-center gap-2">
-              <span className="text-lg">💡</span>
+            <p className="text-sm text-gray-700 font-semibold mb-2">
               Typical Commissioning Values:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-700 ml-6">
@@ -478,7 +473,7 @@ function JobConfigPage() {
               </div>
             </div>
             <p className="text-xs text-gray-600 mt-3 italic">
-              ⚙️ Tip: Adjust lineup capacity based on your commissioning scenario and equipment limitations
+              Tip: Adjust lineup capacity based on your commissioning scenario and equipment limitations
             </p>
           </div>
 
@@ -577,8 +572,7 @@ function JobConfigPage() {
             className="flex items-center justify-between cursor-pointer mb-4"
             onClick={() => setShowPreview(!showPreview)}
           >
-            <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <span className="text-3xl">📊</span>
+            <h3 className="text-2xl font-bold text-gray-800">
               Preview
             </h3>
             <div className="flex items-center gap-3">
@@ -605,8 +599,7 @@ function JobConfigPage() {
                     </div>
                     <div className="flex flex-wrap gap-2 ml-6">
                       {pduConfigs[index]?.map((pdu) => (
-                        <div key={pdu} className="bg-gradient-to-r from-blue-100 to-purple-100 border-2 border-blue-300 px-3 py-2 rounded-lg text-sm font-medium text-gray-800 flex items-center gap-1">
-                          <span className="text-base">🔌</span>
+                        <div key={pdu} className="bg-gradient-to-r from-blue-100 to-purple-100 border-2 border-blue-300 px-3 py-2 rounded-lg text-sm font-medium text-gray-800">
                           {pdu}
                         </div>
                       ))}
@@ -623,9 +616,7 @@ function JobConfigPage() {
           onClick={handleStart}
           className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xl px-8 py-5 w-full rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
         >
-          <span className="text-3xl">🚀</span>
           Start Load Planner
-          <span className="text-3xl">⚡</span>
         </button>
 
         {/* Footer */}
