@@ -22,31 +22,49 @@ function TutorialPage() {
       <div className="bg-white shadow-lg border-b-2 border-blue-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <img 
                 src="/loadflow-pro-logo.svg" 
                 alt="LoadFlow Pro" 
-                className="h-10"
+                className="h-8 sm:h-10"
               />
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">LoadFlow Pro Tutorial</h1>
-                <p className="text-sm text-gray-600">Complete Guide to Load Planning</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">LoadFlow Pro Tutorial</h1>
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Complete Guide to Load Planning</p>
               </div>
             </div>
             <button
               onClick={() => router.back()}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg transition-all text-sm sm:text-base"
             >
-              ← Back
+              ← <span className="hidden sm:inline">Back</span>
             </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Mobile Dropdown Navigation */}
+        <div className="lg:hidden mb-6">
+          <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4">
+            <label className="font-bold text-gray-800 mb-2 block">Jump to Section:</label>
+            <select
+              value={activeSection}
+              onChange={(e) => setActiveSection(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 transition-colors"
+            >
+              {sections.map((section) => (
+                <option key={section.id} value={section.id}>
+                  {section.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div className="flex gap-6">
-          {/* Sidebar Navigation */}
-          <div className="w-64 flex-shrink-0">
+          {/* Desktop Sidebar Navigation */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4 sticky top-24">
               <h3 className="font-bold text-gray-800 mb-3">Contents</h3>
               <nav className="space-y-1">
@@ -68,8 +86,8 @@ function TutorialPage() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-8">
+          <div className="flex-1 min-w-0">
+            <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4 sm:p-6 lg:p-8">
               
               {/* Overview Section */}
               {activeSection === 'overview' && (
@@ -989,7 +1007,7 @@ function TutorialPage() {
             </div>
 
             {/* Footer */}
-            <div className="mt-8 bg-white rounded-lg shadow-lg border-2 border-gray-200 p-6 text-center">
+            <div className="mt-8 bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4 sm:p-6 text-center">
               <p className="text-gray-700 mb-4">
                 Need more help? Contact support or visit the documentation site.
               </p>
