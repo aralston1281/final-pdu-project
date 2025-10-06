@@ -15,7 +15,7 @@ function JobConfigPage() {
   const [subfeedVoltage, setSubfeedVoltage] = useState(415);
   const [subfeedBreakerAmps, setSubfeedBreakerAmps] = useState(400);
   const [subfeedsPerPDU, setSubfeedsPerPDU] = useState(8);
-  const [loadbankMaxKW, setLoadbankMaxKW] = useState(200);
+  const [loadbankMaxKW, setLoadbankMaxKW] = useState(600);
   const [saveName, setSaveName] = useState('');
   const [savedNames, setSavedNames] = useState([]);
   const [newSaveName, setNewSaveName] = useState('');
@@ -129,7 +129,7 @@ function JobConfigPage() {
         setSubfeedVoltage(loaded.subfeedVoltage || 415);
         setSubfeedBreakerAmps(loaded.subfeedBreakerAmps || 400);
         setSubfeedsPerPDU(loaded.subfeedsPerPDU || 8);
-        setLoadbankMaxKW(loaded.loadbankMaxKW || 200);
+        setLoadbankMaxKW(loaded.loadbankMaxKW || 600);
         
         // Load reduced capacity configuration
         if (loaded.reducedCapacityLineups) {
@@ -197,10 +197,16 @@ function JobConfigPage() {
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600">by Andrew Ralston</span>
               <button
+                onClick={() => router.push('/tutorial')}
+                className="text-sm font-semibold text-purple-600 hover:text-purple-700 transition-colors px-3 py-1.5 rounded hover:bg-purple-50"
+              >
+                Tutorial
+              </button>
+              <button
                 onClick={() => setShowAbout(true)}
                 className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors px-3 py-1.5 rounded hover:bg-blue-50"
               >
-                ℹ️ About
+                About
               </button>
             </div>
           </div>

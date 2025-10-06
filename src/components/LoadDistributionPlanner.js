@@ -15,21 +15,51 @@ function LoadDistributionPlanner({ config }) {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showLineupSelector, setShowLineupSelector] = useState(false);
   const [showCommissioningPresets, setShowCommissioningPresets] = useState(false);
-  const [targetLoadMW, setTargetLoadMW] = useState(
-    config.planningState?.targetLoadMW ?? 12
-  );
-  const [selectedLineups, setSelectedLineups] = useState(
-    config.planningState?.selectedLineups ?? initialLineups
-  );
-  const [customDistribution, setCustomDistribution] = useState(
-    config.planningState?.customDistribution ?? []
-  );
-  const [breakerSelection, setBreakerSelection] = useState(
-    config.planningState?.breakerSelection ?? {}
-  );
-  const [customNames, setCustomNames] = useState(config.customNames || {});
+  
+  // Track if we restored from session storage
+  const restoredFromSession = React.useRef(false);
+  
+  // Check for session-stored state (from tutorial navigation)
+  const getInitialState = (key, defaultValue) => {
+    if (typeof window !== 'undefined') {
+      const savedState = sessionStorage.getItem('plannerState');
+      if (savedState) {
+        try {
+          const parsed = JSON.parse(savedState);
+          restoredFromSession.current = true;
+          return parsed[key] ?? (config.planningState?.[key] ?? defaultValue);
+        } catch (e) {
+          console.error('Failed to parse saved state');
+        }
+      }
+    }
+    return config.planningState?.[key] ?? defaultValue;
+  };
+
+  const [targetLoadMW, setTargetLoadMW] = useState(() => getInitialState('targetLoadMW', 10));
+  const [selectedLineups, setSelectedLineups] = useState(() => getInitialState('selectedLineups', initialLineups));
+  const [customDistribution, setCustomDistribution] = useState(() => getInitialState('customDistribution', []));
+  const [breakerSelection, setBreakerSelection] = useState(() => getInitialState('breakerSelection', {}));
+  const [customNames, setCustomNames] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedState = sessionStorage.getItem('plannerState');
+      if (savedState) {
+        try {
+          const parsed = JSON.parse(savedState);
+          if (parsed.customNames) return parsed.customNames;
+        } catch (e) {
+          console.error('Failed to parse saved state');
+        }
+      }
+    }
+    return config.customNames || {};
+  });
   const [pduUsage, setPduUsage] = useState(() => {
-    // Restore saved PDU usage if available
+    // Check session storage first
+    const sessionState = getInitialState('pduUsage', null);
+    if (sessionState) return sessionState;
+    
+    // Then check saved config
     if (config.planningState?.pduUsage) {
       return config.planningState.pduUsage;
     }
@@ -42,11 +72,11 @@ function LoadDistributionPlanner({ config }) {
   });
   const [lineupWarnings, setLineupWarnings] = useState({});
   const [unassignedKW, setUnassignedKW] = useState(0);
-  const [networkedLoadbanks, setNetworkedLoadbanks] = useState(
-    config.planningState?.networkedLoadbanks ?? true
+  const [networkedLoadbanks, setNetworkedLoadbanks] = useState(() => 
+    getInitialState('networkedLoadbanks', true)
   );
-  const [autoDistributeEnabled, setAutoDistributeEnabled] = useState(
-    config.planningState?.autoDistributeEnabled ?? true
+  const [autoDistributeEnabled, setAutoDistributeEnabled] = useState(() =>
+    getInitialState('autoDistributeEnabled', true)
   );
   const [viewMode, setViewMode] = useState('planner'); // 'planner' or 'diagram'
 
@@ -55,7 +85,7 @@ function LoadDistributionPlanner({ config }) {
   const subfeedBreakerAmps = config.subfeedBreakerAmps || 400;
   const pduMainVoltage = config.pduMainVoltage || 480;
   const pduMainBreakerAmps = config.pduMainBreakerAmps || 1000;
-  const loadbankMaxKW = config.loadbankMaxKW || 200;
+  const loadbankMaxKW = config.loadbankMaxKW || 600;
 
   const powerFactor = 1.0;
   const pduMaxKW = calculateMaxSubfeedKW(pduMainVoltage, pduMainBreakerAmps, false, powerFactor);
@@ -97,7 +127,9 @@ function LoadDistributionPlanner({ config }) {
     initialLineups.forEach((lineup, lineupIdx) => {
       const pdus = config.pduConfigs?.[lineupIdx] || [];
       pdus.forEach((_, pduIdx) => {
-        for (let i = 0; i < 3; i++) {
+        // Enable 3 subfeeds by default (or less if fewer available)
+        const subfeedsToEnable = Math.min(3, subfeedsPerPDU);
+        for (let i = 0; i < subfeedsToEnable; i++) {
           defaults[`PDU-${lineup}-${pduIdx + 1}-S${i}`] = true;
         }
       });
@@ -118,7 +150,27 @@ function LoadDistributionPlanner({ config }) {
     setUnassignedKW(0);
   };
 
+  // Clear session storage after component mounts and state is restored
   useEffect(() => {
+    if (typeof window !== 'undefined' && restoredFromSession.current) {
+      // Clear after a delay to ensure all effects have run and state is fully restored
+      const timer = setTimeout(() => {
+        sessionStorage.removeItem('plannerState');
+        // Keep the ref true a bit longer to prevent auto-distribute from running
+        setTimeout(() => {
+          restoredFromSession.current = false;
+        }, 100);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Don't reset breaker selection if we restored from session storage
+    if (restoredFromSession.current) return;
+    
+    // Set default breaker selection when lineups or PDU usage changes
     setBreakerSelection(getDefaultBreakerSelection());
   }, [selectedLineups, pduUsage]);
 
@@ -317,6 +369,9 @@ function LoadDistributionPlanner({ config }) {
 
   // Auto-distribute when relevant parameters change
   useEffect(() => {
+    // Skip auto-distribute if we're restoring from session storage
+    if (restoredFromSession.current) return;
+    
     if (autoDistributeEnabled) {
       const { distributed, unassignedKW, lineupWarnings } = autoDistributeLoad({
         selectedLineups,
@@ -504,12 +559,32 @@ function LoadDistributionPlanner({ config }) {
               )}
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs sm:text-sm text-gray-600">by Andrew Ralston</span>
+              <span className="text-xs sm:text-sm text-gray-600 hidden sm:inline">by Andrew Ralston</span>
+              <button
+                onClick={() => {
+                  // Save current state before navigating to tutorial
+                  const currentState = {
+                    customDistribution,
+                    breakerSelection,
+                    selectedLineups,
+                    pduUsage,
+                    networkedLoadbanks,
+                    targetLoadMW,
+                    autoDistributeEnabled,
+                    customNames
+                  };
+                  sessionStorage.setItem('plannerState', JSON.stringify(currentState));
+                  router.push('/tutorial');
+                }}
+                className="text-xs sm:text-sm font-semibold text-purple-600 hover:text-purple-700 transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-purple-50"
+              >
+                Tutorial
+              </button>
               <button
                 onClick={() => setShowAbout(true)}
-                className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors px-3 py-1.5 rounded hover:bg-blue-50"
+                className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-blue-50"
               >
-                ℹ️ About
+                About
               </button>
             </div>
           </div>
@@ -550,10 +625,9 @@ function LoadDistributionPlanner({ config }) {
             <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => setViewMode(viewMode === 'planner' ? 'diagram' : 'planner')}
-                className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all flex items-center gap-1"
+                className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all"
               >
-                <span>{viewMode === 'planner' ? '📊' : '📋'}</span>
-                <span className="hidden sm:inline">{viewMode === 'planner' ? 'Diagram' : 'Planner'}</span>
+                {viewMode === 'planner' ? 'Diagram' : 'Planner'}
               </button>
               <button
                 onClick={() => setShowSaveDialog(true)}
