@@ -18,6 +18,11 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: 'Config not found' });
     }
 
+    // Set headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     res.status(200).json(result.rows[0].config); // 🔥 send ONLY the config part
   } catch (error) {
     console.error('Failed to load configuration:', error);

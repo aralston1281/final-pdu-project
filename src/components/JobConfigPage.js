@@ -29,7 +29,13 @@ function JobConfigPage() {
 
   const fetchConfigNames = async () => {
     try {
-      const res = await fetch('/api/list-configs');
+      const res = await fetch('/api/list-configs', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (!res.ok) throw new Error('List fetch failed');
       const names = await res.json();
       setSavedNames(names);
@@ -94,8 +100,13 @@ function JobConfigPage() {
   const handleLoad = async () => {
     if (!saveName) return;
     try {
-      const loaded = await fetch(`/api/load-config?name=${encodeURIComponent(saveName)}`)
-        .then(res => res.json());
+      const loaded = await fetch(`/api/load-config?name=${encodeURIComponent(saveName)}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      }).then(res => res.json());
       if (loaded) {
         setJobName(loaded.jobName || '');
         

@@ -15,14 +15,18 @@ export default function Document() {
         <meta name="description" content="Professional Load Planning for Data Center Commissioning" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#1e5a7d" />
+        <meta name="theme-color" content="#2563eb" />
         
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
         
         {/* App Icons */}
+        <link rel="icon" href="/favicon.ico" />
         <link rel="icon" type="image/svg+xml" href="/loadflow-pro-logo.svg" />
-        <link rel="apple-touch-icon" href="/loadflow-pro-logo.svg" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/favicon.ico" />
         
         {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
