@@ -44,8 +44,8 @@ function TutorialPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-8">
-        {/* Mobile Dropdown Navigation */}
-        <div className="lg:hidden mb-6">
+        {/* Mobile Dropdown Navigation - Phones Only */}
+        <div className="md:hidden mb-6">
           <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4">
             <label className="font-bold text-gray-800 mb-2 block">Jump to Section:</label>
             <select
@@ -63,8 +63,8 @@ function TutorialPage() {
         </div>
 
         <div className="flex gap-6">
-          {/* Desktop Sidebar Navigation */}
-          <div className="hidden lg:block w-64 flex-shrink-0">
+          {/* Sidebar Navigation - Tablets & Desktop */}
+          <div className="hidden md:block w-64 flex-shrink-0">
             <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4 sticky top-24">
               <h3 className="font-bold text-gray-800 mb-3">Contents</h3>
               <nav className="space-y-1">
