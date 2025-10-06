@@ -7,6 +7,7 @@ import { calculateMaxSubfeedKW, autoDistributeLoad } from '@/utils/loadMath';
 import LineupSection from '@/components/LineupSection';
 import PlannerHeader from '@/components/PlannerHeader';
 import CalculationSummary from '@/components/CalculationSummary';
+import OneLineDiagramView from '@/components/OneLineDiagramView';
 
 function LoadDistributionPlanner({ config }) {
   const router = useRouter();
@@ -30,6 +31,7 @@ function LoadDistributionPlanner({ config }) {
   const [unassignedKW, setUnassignedKW] = useState(0);
   const [networkedLoadbanks, setNetworkedLoadbanks] = useState(true);
   const [autoDistributeEnabled, setAutoDistributeEnabled] = useState(true);
+  const [viewMode, setViewMode] = useState('planner'); // 'planner' or 'diagram'
 
   const subfeedsPerPDU = config.subfeedsPerPDU || 8;
   const subfeedVoltage = config.subfeedVoltage || 415;
@@ -479,56 +481,17 @@ function LoadDistributionPlanner({ config }) {
             {/* Action Buttons */}
             <div className="flex items-center gap-1 sm:gap-2">
               <button
+                onClick={() => setViewMode(viewMode === 'planner' ? 'diagram' : 'planner')}
+                className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all flex items-center gap-1"
+              >
+                <span>{viewMode === 'planner' ? '📊' : '📋'}</span>
+                <span className="hidden sm:inline">{viewMode === 'planner' ? 'Diagram' : 'Planner'}</span>
+              </button>
+              <button
                 onClick={() => setShowSaveDialog(true)}
                 className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-all"
               >
                 Save
-              </button>
-              <button
-                onClick={() => {
-                  // Prepare load data to pass to diagram
-                  const lineupLoads = {};
-                  const pduLoads = {};
-                  
-                  selectedLineups.forEach((lineup, lineupIndex) => {
-                    const pduList = pduUsage[lineup] || [];
-                    let lineupTotalLoad = 0;
-                    
-                    pduList.forEach((pduIdx, pj) => {
-                      const globalIndex = selectedLineups
-                        .slice(0, lineupIndex)
-                        .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
-                      const load = customDistribution[globalIndex] || 0;
-                      lineupTotalLoad += load;
-                      
-                      // Strip "UPS-" for PDU key to match config.pduConfigs
-                      const lineupForPDU = lineup.replace(/^UPS-/i, '');
-                      const pduKey = `PDU-${lineupForPDU}-${pduIdx + 1}`;
-                      pduLoads[pduKey] = load;
-                    });
-                    
-                    lineupLoads[lineup] = lineupTotalLoad;
-                  });
-                  
-                  const loadData = { lineupLoads, pduLoads };
-                  
-                  // Include custom names in config
-                  const configWithNames = {
-                    ...config,
-                    customNames
-                  };
-                  
-                  router.push({
-                    pathname: '/diagram',
-                    query: { 
-                      config: JSON.stringify(configWithNames),
-                      loadData: JSON.stringify(loadData)
-                    },
-                  });
-                }}
-                className="text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all"
-              >
-                Diagram
               </button>
               <button
                 onClick={autoDistribute}
@@ -871,30 +834,45 @@ function LoadDistributionPlanner({ config }) {
           )}
         </div>
 
-        {selectedLineups.map((lineup, li) => (
-          <LineupSection
-            key={lineup}
-            lineup={lineup}
-            pduList={pduUsage[lineup] || []}
-            lineupIndex={li}
-            pduUsage={pduUsage}
+        {viewMode === 'diagram' ? (
+          <OneLineDiagramView
+            config={config}
             selectedLineups={selectedLineups}
+            pduUsage={pduUsage}
             customDistribution={customDistribution}
-            pduMaxKW={pduMaxKW}
-            lineupMaxKW={getLineupMaxKW(lineup)}
-            defaultLineupMaxKW={lineupMaxKW}
-            breakerSelection={breakerSelection}
-            toggleSubfeed={handleSubfeedToggle}
-            handleCustomChange={handleCustomChange}
-            subfeedsPerPDU={subfeedsPerPDU}
-            maxSubfeedKW={maxSubfeedKW}
-            lineupWarnings={lineupWarnings}
-            formatPower={formatPower}
-            networkedLoadbanks={networkedLoadbanks}
             getDisplayName={getDisplayName}
-            updateCustomName={updateCustomName}
+            reducedCapacityLineups={reducedCapacityLineups}
+            breakerSelection={breakerSelection}
+            networkedLoadbanks={networkedLoadbanks}
+            handleCustomChange={handleCustomChange}
+            toggleSubfeed={handleSubfeedToggle}
           />
-        ))}
+        ) : (
+          selectedLineups.map((lineup, li) => (
+            <LineupSection
+              key={lineup}
+              lineup={lineup}
+              pduList={pduUsage[lineup] || []}
+              lineupIndex={li}
+              pduUsage={pduUsage}
+              selectedLineups={selectedLineups}
+              customDistribution={customDistribution}
+              pduMaxKW={pduMaxKW}
+              lineupMaxKW={getLineupMaxKW(lineup)}
+              defaultLineupMaxKW={lineupMaxKW}
+              breakerSelection={breakerSelection}
+              toggleSubfeed={handleSubfeedToggle}
+              handleCustomChange={handleCustomChange}
+              subfeedsPerPDU={subfeedsPerPDU}
+              maxSubfeedKW={maxSubfeedKW}
+              lineupWarnings={lineupWarnings}
+              formatPower={formatPower}
+              networkedLoadbanks={networkedLoadbanks}
+              getDisplayName={getDisplayName}
+              updateCustomName={updateCustomName}
+            />
+          ))
+        )}
 
         {/* Footer */}
         <footer className="mt-12 pt-6 border-t border-gray-300 text-center text-sm text-gray-600">
