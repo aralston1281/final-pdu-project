@@ -101,7 +101,7 @@ function TutorialPage() {
                     </div>
                     
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <h3 className="font-bold text-green-900 mb-2">What You'll Learn</h3>
+                      <h3 className="font-bold text-green-900 mb-2">What You&apos;ll Learn</h3>
                       <ul className="text-sm text-green-800 space-y-1">
                         <li>• Setting up job configurations</li>
                         <li>• Planning load distribution</li>
@@ -218,7 +218,7 @@ function TutorialPage() {
                       <div className="space-y-4">
                         <div>
                           <div className="font-semibold text-gray-800 mb-1">Job Name</div>
-                          <p className="text-sm text-gray-600">Example: "Datacenter A - Floor 1 - UPS Test"</p>
+                          <p className="text-sm text-gray-600">Example: &quot;Datacenter A - Floor 1 - UPS Test&quot;</p>
                           <p className="text-xs text-gray-500 mt-1">Used to identify saved configurations</p>
                         </div>
                         
@@ -388,7 +388,7 @@ function TutorialPage() {
                         </div>
                         <div>
                           <p className="font-semibold text-gray-800 mb-1">Edit Name</p>
-                          <p className="text-gray-600">Click "Edit" to customize PDU name</p>
+                          <p className="text-gray-600">Click &quot;Edit&quot; to customize PDU name</p>
                         </div>
                       </div>
                     </div>
@@ -434,7 +434,7 @@ function TutorialPage() {
                       <p>• Use <strong>Auto Distribute</strong> for even load spreading</p>
                       <p>• Toggle <strong>Auto-distribute enabled</strong> to manually edit without recalculation</p>
                       <p>• Select more subfeeds to reduce load per subfeed</p>
-                      <p>• Collapse lineups you're not working on to reduce clutter</p>
+                      <p>• Collapse lineups you&apos;re not working on to reduce clutter</p>
                     </div>
                   </div>
                 </div>

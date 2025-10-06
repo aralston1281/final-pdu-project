@@ -22,11 +22,8 @@ export default function Document() {
         
         {/* App Icons */}
         <link rel="icon" href="/favicon.ico" />
-        <link rel="icon" type="image/svg+xml" href="/loadflow-pro-logo.svg" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/favicon.ico" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         
         {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

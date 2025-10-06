@@ -1,10 +1,14 @@
 // Service Worker for LoadFlow Pro PWA
-const CACHE_NAME = 'loadflow-pro-v2';
+const CACHE_NAME = 'loadflow-pro-v3';
 const urlsToCache = [
   '/',
   '/planner',
   '/tutorial',
-  '/loadflow-pro-logo.svg'
+  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
+  '/favicon.ico'
 ];
 
 // Install event - cache resources
