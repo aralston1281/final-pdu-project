@@ -14,6 +14,16 @@ function OneLineDiagramView({
   handleCustomChange,
   toggleSubfeed
 }) {
+  const [zoom, setZoom] = React.useState(1.0);
+  const [isDesktop, setIsDesktop] = React.useState(false);
+  
+  React.useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+  
   const lineupMaxKW = config.lineupMaxKW || 1500;
 
   const getLineupMaxKW = (lineup) => {
@@ -60,11 +70,48 @@ function OneLineDiagramView({
 
   return (
     <div className="bg-white rounded-lg shadow-md border-2 border-gray-200 p-4 sm:p-8">
-      {/* Editable Hint */}
+      {/* Zoom Controls - Desktop Only */}
+      <div className="hidden md:flex items-center justify-between mb-4">
+        <div>
+          {(handleCustomChange || toggleSubfeed) && (
+            <div className="text-sm text-blue-800">
+              <span className="font-semibold">Interactive:</span> Click to edit
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
+          <button
+            onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+            className="bg-white hover:bg-gray-200 border-2 border-gray-300 px-3 py-1 rounded font-bold transition-colors"
+            title="Zoom Out"
+          >
+            −
+          </button>
+          <span className="text-sm font-semibold text-gray-700 min-w-[60px] text-center">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            onClick={() => setZoom(Math.min(2.0, zoom + 0.1))}
+            className="bg-white hover:bg-gray-200 border-2 border-gray-300 px-3 py-1 rounded font-bold transition-colors"
+            title="Zoom In"
+          >
+            +
+          </button>
+          <button
+            onClick={() => setZoom(1.0)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-semibold transition-colors ml-1"
+            title="Reset Zoom"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+      
+      {/* Mobile Hint */}
       {(handleCustomChange || toggleSubfeed) && (
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded">
+        <div className="md:hidden bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded">
           <p className="text-sm text-blue-800">
-            <span className="font-semibold">✏️ Interactive Diagram:</span> Click PDU loads to edit values. Click subfeeds to toggle on/off.
+            <span className="font-semibold">Interactive:</span> Click to edit. Pinch to zoom.
           </p>
         </div>
       )}
@@ -96,8 +143,15 @@ function OneLineDiagramView({
       </div>
 
       {/* Single-Line Diagram */}
-      <div className="overflow-x-auto">
-        <div className="min-w-max">
+      <div className="overflow-x-auto overflow-y-auto border-2 border-gray-300 rounded-lg bg-gray-50" style={{ maxHeight: '80vh', touchAction: 'pan-x pan-y pinch-zoom' }}>
+        <div 
+          className="min-w-max p-4 md:p-8"
+          style={{ 
+            transform: isDesktop ? `scale(${zoom})` : 'none',
+            transformOrigin: 'top left',
+            width: 'fit-content'
+          }}
+        >
           {/* Main Source */}
           <div className="flex flex-col items-center mb-4 sm:mb-6">
             <div className="bg-gradient-to-b from-red-600 to-red-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg shadow-lg">
