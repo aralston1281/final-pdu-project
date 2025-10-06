@@ -17,7 +17,7 @@ function TutorialPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white shadow-lg border-b-2 border-blue-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
@@ -43,7 +43,7 @@ function TutorialPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-8">
         {/* Mobile Dropdown Navigation */}
         <div className="lg:hidden mb-6">
           <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4">
@@ -86,13 +86,13 @@ function TutorialPage() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4 sm:p-6 lg:p-8">
+          <div className="flex-1 min-w-0 overflow-x-hidden">
+            <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
               
               {/* Overview Section */}
               {activeSection === 'overview' && (
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome to LoadFlow Pro</h2>
+                <div className="max-w-full overflow-x-hidden">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 break-words">Welcome to LoadFlow Pro</h2>
                   
                   <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
                     <p className="text-yellow-800 font-bold">
@@ -168,8 +168,8 @@ function TutorialPage() {
 
               {/* Getting Started Section */}
               {activeSection === 'getting-started' && (
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Getting Started</h2>
+                <div className="max-w-full overflow-x-hidden">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 break-words">Getting Started</h2>
                   
                   <div className="mb-8">
                     <h3 className="text-xl font-bold text-gray-800 mb-3">Step 1: Home Screen</h3>
@@ -223,8 +223,8 @@ function TutorialPage() {
 
               {/* Job Configuration Section */}
               {activeSection === 'job-config' && (
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Job Configuration</h2>
+                <div className="max-w-full overflow-x-hidden">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 break-words">Job Configuration</h2>
                   
                   <p className="text-gray-700 mb-6">
                     The job configuration defines your electrical system layout and equipment specifications.
@@ -332,8 +332,8 @@ function TutorialPage() {
 
               {/* Planner Section */}
               {activeSection === 'planner' && (
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Load Planner</h2>
+                <div className="max-w-full overflow-x-hidden">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 break-words">Load Planner</h2>
                   
                   <div className="mb-8">
                     <h3 className="text-xl font-bold text-gray-800 mb-3">Setting Target Load</h3>
@@ -460,15 +460,15 @@ function TutorialPage() {
 
               {/* Networking Section */}
               {activeSection === 'networking' && (
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Loadbank Networking</h2>
+                <div className="max-w-full overflow-x-hidden">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 break-words">Loadbank Networking</h2>
                   
                   <p className="text-gray-700 mb-6">
                     Understanding how loadbanks distribute power is crucial for proper test planning.
                   </p>
 
                   <div className="mb-8">
-                    <h3 className="text-xl font-bold text-gray-800 mb-3">Networked Mode (Default)</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 break-words">Networked Mode (Default)</h3>
                     <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-4">
                       <div className="flex items-center gap-2 mb-4">
                         <input type="checkbox" checked readOnly className="w-5 h-5" />
@@ -581,8 +581,8 @@ function TutorialPage() {
 
               {/* Diagram Section */}
               {activeSection === 'diagram' && (
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Diagram View</h2>
+                <div className="max-w-full overflow-x-hidden">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 break-words">Diagram View</h2>
                   
                   <p className="text-gray-700 mb-6">
                     The diagram view provides a visual one-line representation of your electrical distribution system.
@@ -695,8 +695,8 @@ function TutorialPage() {
 
               {/* Warnings Section */}
               {activeSection === 'warnings' && (
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Warnings & Limits</h2>
+                <div className="max-w-full overflow-x-hidden">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 break-words">Warnings & Limits</h2>
                   
                   <p className="text-gray-700 mb-6">
                     The system provides real-time warnings to help prevent electrical overloads and equipment limitations.
@@ -876,8 +876,8 @@ function TutorialPage() {
 
               {/* Tips Section */}
               {activeSection === 'tips' && (
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Tips & Best Practices</h2>
+                <div className="max-w-full overflow-x-hidden">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 break-words">Tips & Best Practices</h2>
                   
                   <div className="mb-8">
                     <h3 className="text-xl font-bold text-gray-800 mb-3">Planning Your Test</h3>
