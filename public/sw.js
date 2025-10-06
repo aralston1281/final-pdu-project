@@ -1,5 +1,5 @@
 // Service Worker for LoadFlow Pro PWA
-const CACHE_NAME = 'loadflow-pro-v3';
+const CACHE_NAME = 'loadflow-pro-v4';
 const urlsToCache = [
   '/',
   '/planner',
@@ -35,7 +35,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network-first for pages, cache-first for assets
 self.addEventListener('fetch', (event) => {
   // Never cache API requests
   if (event.request.url.includes('/api/')) {
@@ -43,34 +43,47 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Network-first strategy for HTML pages (always fresh)
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Update cache with fresh response
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Network failed, try cache
+          return caches.match(event.request).then((response) => {
+            return response || caches.match('/');
+          });
+        })
+    );
+    return;
+  }
+
+  // Cache-first for assets (images, icons, etc.)
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
         if (response) {
           return response;
         }
-        // Clone the request
-        const fetchRequest = event.request.clone();
         
-        return fetch(fetchRequest).then((response) => {
-          // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
+        return fetch(event.request).then((response) => {
+          if (!response || response.status !== 200) {
             return response;
           }
           
-          // Clone the response
           const responseToCache = response.clone();
-          
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
           
           return response;
-        }).catch(() => {
-          // Network request failed, try to serve a fallback
-          return caches.match('/');
         });
       })
   );

@@ -143,7 +143,7 @@ function OneLineDiagramView({
       </div>
 
       {/* Single-Line Diagram */}
-      <div className="overflow-x-auto overflow-y-auto border-2 border-gray-300 rounded-lg bg-gray-50" style={{ maxHeight: '80vh', touchAction: 'pan-x pan-y pinch-zoom' }}>
+      <div className="overflow-x-auto overflow-y-auto border-2 border-gray-300 rounded-lg bg-gray-50" style={{ maxHeight: '80vh', touchAction: 'manipulation' }}>
         <div 
           className="min-w-max p-4 md:p-8"
           style={{ 
