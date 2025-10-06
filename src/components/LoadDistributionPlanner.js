@@ -15,12 +15,25 @@ function LoadDistributionPlanner({ config }) {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showLineupSelector, setShowLineupSelector] = useState(false);
   const [showCommissioningPresets, setShowCommissioningPresets] = useState(false);
-  const [targetLoadMW, setTargetLoadMW] = useState(12);
-  const [selectedLineups, setSelectedLineups] = useState(initialLineups);
-  const [customDistribution, setCustomDistribution] = useState([]);
-  const [breakerSelection, setBreakerSelection] = useState({});
+  const [targetLoadMW, setTargetLoadMW] = useState(
+    config.planningState?.targetLoadMW ?? 12
+  );
+  const [selectedLineups, setSelectedLineups] = useState(
+    config.planningState?.selectedLineups ?? initialLineups
+  );
+  const [customDistribution, setCustomDistribution] = useState(
+    config.planningState?.customDistribution ?? []
+  );
+  const [breakerSelection, setBreakerSelection] = useState(
+    config.planningState?.breakerSelection ?? {}
+  );
   const [customNames, setCustomNames] = useState(config.customNames || {});
   const [pduUsage, setPduUsage] = useState(() => {
+    // Restore saved PDU usage if available
+    if (config.planningState?.pduUsage) {
+      return config.planningState.pduUsage;
+    }
+    // Otherwise, use default (all PDUs active)
     const usage = {};
     initialLineups.forEach((lineup, idx) => {
       usage[lineup] = (config.pduConfigs[idx] || []).map((_, i) => i);
@@ -29,8 +42,12 @@ function LoadDistributionPlanner({ config }) {
   });
   const [lineupWarnings, setLineupWarnings] = useState({});
   const [unassignedKW, setUnassignedKW] = useState(0);
-  const [networkedLoadbanks, setNetworkedLoadbanks] = useState(true);
-  const [autoDistributeEnabled, setAutoDistributeEnabled] = useState(true);
+  const [networkedLoadbanks, setNetworkedLoadbanks] = useState(
+    config.planningState?.networkedLoadbanks ?? true
+  );
+  const [autoDistributeEnabled, setAutoDistributeEnabled] = useState(
+    config.planningState?.autoDistributeEnabled ?? true
+  );
   const [viewMode, setViewMode] = useState('planner'); // 'planner' or 'diagram'
 
   const subfeedsPerPDU = config.subfeedsPerPDU || 8;
@@ -308,7 +325,17 @@ function LoadDistributionPlanner({ config }) {
 
     const configToSave = {
       ...config,
-      customNames
+      customNames,
+      // Save planning state
+      planningState: {
+        customDistribution,
+        breakerSelection,
+        selectedLineups,
+        pduUsage,
+        networkedLoadbanks,
+        targetLoadMW,
+        autoDistributeEnabled
+      }
     };
 
     try {
@@ -925,7 +952,7 @@ function LoadDistributionPlanner({ config }) {
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-bold text-gray-800 mb-4">Save Configuration</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Save your current load distribution and custom names for later use.
+              Save your complete planning state including load distribution, selected PDUs, active subfeeds, custom names, and all settings.
             </p>
             <input
               type="text"
