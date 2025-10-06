@@ -13,6 +13,7 @@ function PDUCard({
   toggleSubfeed,
   subfeedsPerPDU,
   maxSubfeedKW,
+  loadbankMaxKW,
   formatPower,
   pduListLength = 2,
   networkedLoadbanks = true,
@@ -144,14 +145,16 @@ function PDUCard({
               }
             }
             
-            const overLimit = feedLoad > maxSubfeedKW;
+            const overBreakerLimit = feedLoad > maxSubfeedKW;
+            const overLoadbankLimit = feedLoad > (loadbankMaxKW || maxSubfeedKW);
             const utilizationPercent = maxSubfeedKW > 0 ? (feedLoad / maxSubfeedKW) * 100 : 0;
+            const loadbankPercent = loadbankMaxKW > 0 ? (feedLoad / loadbankMaxKW) * 100 : 0;
             
             let subfeedBg = 'bg-gray-100 border-gray-300';
             if (isSelected) {
-              if (overLimit) subfeedBg = 'bg-red-50 border-red-400';
-              else if (utilizationPercent >= 80) subfeedBg = 'bg-orange-50 border-orange-300';
-              else if (utilizationPercent >= 70) subfeedBg = 'bg-yellow-50 border-yellow-300';
+              if (overBreakerLimit) subfeedBg = 'bg-red-50 border-red-400'; // Electrical overload
+              else if (overLoadbankLimit) subfeedBg = 'bg-orange-50 border-orange-400'; // Exceeds loadbank capacity
+              else if (loadbankPercent >= 80) subfeedBg = 'bg-yellow-50 border-yellow-300';
               else subfeedBg = 'bg-green-50 border-green-300';
             }
 
@@ -172,13 +175,14 @@ function PDUCard({
                 <span className="font-bold text-sm">S{i + 1}</span>
                 {isSelected && (
                   <div className="text-xs mt-1 text-center">
-                    <div className={`font-semibold ${overLimit ? 'text-red-700' : 'text-gray-700'}`}>
+                    <div className={`font-semibold ${overBreakerLimit ? 'text-red-700' : overLoadbankLimit ? 'text-orange-700' : 'text-gray-700'}`}>
                       {feedLoad.toFixed(1)} kW
                     </div>
                     <div className="text-gray-500 text-[10px]">
-                      / {maxSubfeedKW.toFixed(0)}
+                      LB: {loadbankMaxKW || 0} / BR: {maxSubfeedKW.toFixed(0)}
                     </div>
-                    {overLimit && <span className="text-red-600">⚠️</span>}
+                    {overBreakerLimit && <span className="text-red-600" title="Breaker overload!">🔴</span>}
+                    {!overBreakerLimit && overLoadbankLimit && <span className="text-orange-600" title="Exceeds loadbank capacity">🟠</span>}
                   </div>
                 )}
               </label>

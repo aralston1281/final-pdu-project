@@ -10,6 +10,7 @@ function CalculationSummary({
   pduMainBreakerAmps,
   subfeedVoltage,
   subfeedBreakerAmps,
+  loadbankMaxKW,
   selectedLineups,
   powerFactor = 1.0,
   config
@@ -196,6 +197,13 @@ function CalculationSummary({
                 value={(Math.sqrt(3) * subfeedVoltage * subfeedBreakerAmps * powerFactor / 1000).toFixed(2)} 
                 unit="kW"
                 tooltip="Max power per subfeed: √3 × V × I × PF / 1000"
+              />
+              <StatRow 
+                label="Loadbank Max" 
+                value={loadbankMaxKW || 0} 
+                unit="kW"
+                color="text-blue-600"
+                tooltip="Physical loadbank capacity constraint"
               />
               <StatRow 
                 label="Subfeeds per PDU" 

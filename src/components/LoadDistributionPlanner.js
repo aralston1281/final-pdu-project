@@ -55,6 +55,7 @@ function LoadDistributionPlanner({ config }) {
   const subfeedBreakerAmps = config.subfeedBreakerAmps || 400;
   const pduMainVoltage = config.pduMainVoltage || 480;
   const pduMainBreakerAmps = config.pduMainBreakerAmps || 1000;
+  const loadbankMaxKW = config.loadbankMaxKW || 200;
 
   const powerFactor = 1.0;
   const pduMaxKW = calculateMaxSubfeedKW(pduMainVoltage, pduMainBreakerAmps, false, powerFactor);
@@ -149,10 +150,30 @@ function LoadDistributionPlanner({ config }) {
     });
   });
 
-  // Find overloaded subfeeds
+  // Find overloaded subfeeds (breaker) and loadbank capacity issues
   const overloadedSubfeeds = [];
+  const loadbankExceededSubfeeds = [];
+  const loadbankIssuesByLineup = {}; // Track lineup-level loadbank needs for networked mode
+  
   selectedLineups.forEach((lineup) => {
     const pduList = pduUsage[lineup] || [];
+    
+    // Calculate lineup totals for networked mode
+    const lineupTotalLoad = (pduUsage[lineup] || []).reduce((total, pdu, pj) => {
+      const lineupIndex = selectedLineups.indexOf(lineup);
+      const index = selectedLineups
+        .slice(0, lineupIndex)
+        .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
+      return total + (customDistribution[index] || 0);
+    }, 0);
+    
+    const lineupSubfeedCount = pduList.reduce((count, pdu) => {
+      const pk = `PDU-${lineup}-${pdu + 1}`;
+      return count + Array.from({ length: subfeedsPerPDU }).filter(
+        (_, j) => breakerSelection[`${pk}-S${j}`]
+      ).length;
+    }, 0);
+    
     pduList.forEach((pduIdx) => {
       const pduKey = `PDU-${lineup}-${pduIdx + 1}`;
       for (let i = 0; i < subfeedsPerPDU; i++) {
@@ -161,19 +182,6 @@ function LoadDistributionPlanner({ config }) {
           // Calculate subfeed load based on networking mode
           let subfeedLoad = 0;
           if (networkedLoadbanks) {
-            const lineupTotalLoad = (pduUsage[lineup] || []).reduce((total, pdu, pj) => {
-              const lineupIndex = selectedLineups.indexOf(lineup);
-              const index = selectedLineups
-                .slice(0, lineupIndex)
-                .reduce((acc, l) => acc + (pduUsage[l]?.length || 0), 0) + pj;
-              return total + (customDistribution[index] || 0);
-            }, 0);
-            const lineupSubfeedCount = pduList.reduce((count, pdu) => {
-              const pk = `PDU-${lineup}-${pdu + 1}`;
-              return count + Array.from({ length: subfeedsPerPDU }).filter(
-                (_, j) => breakerSelection[`${pk}-S${j}`]
-              ).length;
-            }, 0);
             subfeedLoad = lineupSubfeedCount > 0 ? lineupTotalLoad / lineupSubfeedCount : 0;
           } else {
             // Per-PDU mode
@@ -189,12 +197,45 @@ function LoadDistributionPlanner({ config }) {
             subfeedLoad = selectedCount > 0 ? pduLoad / selectedCount : 0;
           }
 
+          // Check for breaker overload (electrical)
           if (subfeedLoad > maxSubfeedKW) {
             overloadedSubfeeds.push({
               name: `${pduKey}-S${i + 1}`,
               load: subfeedLoad,
               max: maxSubfeedKW,
               excess: subfeedLoad - maxSubfeedKW
+            });
+          }
+          // Check for loadbank capacity exceeded (but not breaker overload)
+          else if (subfeedLoad > loadbankMaxKW) {
+            let additionalNeeded = 0;
+            
+            if (networkedLoadbanks) {
+              // In networked mode, calculate total loadbanks needed for entire lineup
+              if (!loadbankIssuesByLineup[lineup]) {
+                const totalLoadbanksNeeded = Math.ceil(lineupTotalLoad / loadbankMaxKW);
+                additionalNeeded = totalLoadbanksNeeded - lineupSubfeedCount;
+                loadbankIssuesByLineup[lineup] = {
+                  totalLoad: lineupTotalLoad,
+                  currentSubfeeds: lineupSubfeedCount,
+                  additionalNeeded: additionalNeeded > 0 ? additionalNeeded : 0
+                };
+              }
+              additionalNeeded = loadbankIssuesByLineup[lineup].additionalNeeded;
+            } else {
+              // Per-PDU mode: per-subfeed calculation
+              const totalLoadbanksNeeded = Math.ceil(subfeedLoad / loadbankMaxKW);
+              additionalNeeded = totalLoadbanksNeeded - 1;
+            }
+            
+            loadbankExceededSubfeeds.push({
+              name: `${pduKey}-S${i + 1}`,
+              load: subfeedLoad,
+              loadbankMax: loadbankMaxKW,
+              excess: subfeedLoad - loadbankMaxKW,
+              additionalLoadbanks: additionalNeeded,
+              lineup: lineup,
+              isNetworked: networkedLoadbanks
             });
           }
         }
@@ -688,6 +729,67 @@ function LoadDistributionPlanner({ config }) {
           </div>
         )}
 
+        {/* Loadbank Capacity Warning */}
+        {loadbankExceededSubfeeds.length > 0 && (
+          <div className="p-4 bg-orange-50 border-l-4 border-orange-500 rounded-lg mb-6">
+            <div className="flex items-start gap-3">
+              <div>
+                <p className="font-bold text-orange-800">🟠 Loadbank Capacity Exceeded ({loadbankExceededSubfeeds.length} subfeeds affected)</p>
+                <p className="text-orange-700 text-sm mt-1">
+                  The following subfeeds exceed your loadbank capacity ({loadbankMaxKW} kW per unit):
+                </p>
+                
+                {networkedLoadbanks ? (
+                  // Networked mode: Show lineup-level summary
+                  <div className="mt-2 space-y-2">
+                    {Object.entries(loadbankIssuesByLineup).map(([lineup, info]) => (
+                      <div key={lineup} className="bg-orange-100 p-3 rounded border border-orange-300">
+                        <div className="font-bold text-orange-900">{getDisplayName(lineup)}</div>
+                        <div className="text-sm text-orange-800 mt-1">
+                          Total Load: {info.totalLoad.toFixed(2)} kW | Current Loadbanks: {info.currentSubfeeds}
+                        </div>
+                        <div className="text-sm text-orange-900 font-bold mt-1">
+                          ⚠️ Need {info.additionalNeeded} additional loadbank{info.additionalNeeded > 1 ? 's' : ''} to distribute load across lineup
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          (Load will redistribute evenly when loadbanks added to any subfeed in this lineup)
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // Per-PDU mode: Show individual subfeed issues
+                  <div className="mt-2 space-y-1">
+                    {loadbankExceededSubfeeds.slice(0, 5).map((subfeed) => (
+                      <div key={subfeed.name} className="text-sm text-orange-700 ml-4">
+                        • <span className="font-semibold">{subfeed.name}</span>: {subfeed.load.toFixed(2)} kW
+                        <span className="text-orange-800 font-bold"> (needs {subfeed.additionalLoadbanks} additional loadbank{subfeed.additionalLoadbanks > 1 ? 's' : ''})</span>
+                        <span className="text-gray-600"> - {subfeed.excess.toFixed(2)} kW over capacity</span>
+                      </div>
+                    ))}
+                    {loadbankExceededSubfeeds.length > 5 && (
+                      <div className="text-sm text-orange-700 ml-4 italic">
+                        ...and {loadbankExceededSubfeeds.length - 5} more
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                  <p className="text-sm text-blue-800 font-semibold">
+                    💡 Solution Options:
+                  </p>
+                  <ul className="text-sm text-blue-700 mt-1 ml-4 list-disc">
+                    <li>Add additional {loadbankMaxKW}kW loadbank units {networkedLoadbanks ? 'to any subfeed in affected lineup' : 'to each affected subfeed'}</li>
+                    <li>Reduce load {networkedLoadbanks ? 'on affected lineups' : 'per subfeed'} to {loadbankMaxKW}kW or less per loadbank</li>
+                    <li>{networkedLoadbanks ? 'Activate more subfeeds in affected lineups to distribute load' : 'Enable more subfeeds on affected PDUs'}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Commissioning Test Presets */}
         <div className="bg-white rounded-lg shadow-lg border-2 border-purple-100 overflow-hidden mb-6">
           <div 
@@ -784,6 +886,7 @@ function LoadDistributionPlanner({ config }) {
           pduMainBreakerAmps={pduMainBreakerAmps}
           subfeedVoltage={subfeedVoltage}
           subfeedBreakerAmps={subfeedBreakerAmps}
+          loadbankMaxKW={loadbankMaxKW}
           selectedLineups={selectedLineups}
           powerFactor={powerFactor}
           config={config}
@@ -892,6 +995,7 @@ function LoadDistributionPlanner({ config }) {
               handleCustomChange={handleCustomChange}
               subfeedsPerPDU={subfeedsPerPDU}
               maxSubfeedKW={maxSubfeedKW}
+              loadbankMaxKW={loadbankMaxKW}
               lineupWarnings={lineupWarnings}
               formatPower={formatPower}
               networkedLoadbanks={networkedLoadbanks}

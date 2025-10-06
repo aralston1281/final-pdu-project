@@ -15,6 +15,7 @@ function JobConfigPage() {
   const [subfeedVoltage, setSubfeedVoltage] = useState(415);
   const [subfeedBreakerAmps, setSubfeedBreakerAmps] = useState(400);
   const [subfeedsPerPDU, setSubfeedsPerPDU] = useState(8);
+  const [loadbankMaxKW, setLoadbankMaxKW] = useState(200);
   const [saveName, setSaveName] = useState('');
   const [savedNames, setSavedNames] = useState([]);
   const [newSaveName, setNewSaveName] = useState('');
@@ -78,6 +79,7 @@ function JobConfigPage() {
     subfeedVoltage,
     subfeedBreakerAmps,
     subfeedsPerPDU,
+    loadbankMaxKW,
     reducedCapacityLineups,
     customNames: {},  // Will be populated when loaded
   };
@@ -127,6 +129,7 @@ function JobConfigPage() {
         setSubfeedVoltage(loaded.subfeedVoltage || 415);
         setSubfeedBreakerAmps(loaded.subfeedBreakerAmps || 400);
         setSubfeedsPerPDU(loaded.subfeedsPerPDU || 8);
+        setLoadbankMaxKW(loaded.loadbankMaxKW || 200);
         
         // Load reduced capacity configuration
         if (loaded.reducedCapacityLineups) {
@@ -441,6 +444,19 @@ function JobConfigPage() {
                     max={20}
                   />
                   <p className="text-xs text-gray-500 mt-1">Number of subfeed circuits per PDU (typically 6-12)</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Loadbank Max kW</label>
+                  <input
+                    type="number"
+                    className="bg-white border-2 border-gray-300 focus:border-blue-500 text-black px-4 py-3 w-full rounded-lg transition-colors"
+                    value={loadbankMaxKW}
+                    onChange={(e) => setLoadbankMaxKW(Number(e.target.value))}
+                    min={1}
+                    step={10}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum kW per loadbank unit (physical constraint)</p>
                 </div>
               </div>
             </div>

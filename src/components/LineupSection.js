@@ -15,6 +15,7 @@ function LineupSection({
   handleCustomChange,
   subfeedsPerPDU,
   maxSubfeedKW,
+  loadbankMaxKW,
   lineupWarnings,
   formatPower,
   lineupMaxKW,
@@ -183,6 +184,7 @@ function LineupSection({
                   toggleSubfeed={toggleSubfeed}
                   subfeedsPerPDU={subfeedsPerPDU}
                   maxSubfeedKW={maxSubfeedKW}
+                  loadbankMaxKW={loadbankMaxKW}
                   formatPower={formatPower}
                   pduListLength={pduList.length}
                   networkedLoadbanks={networkedLoadbanks}
